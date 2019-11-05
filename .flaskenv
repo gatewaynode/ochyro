@@ -1,0 +1,2 @@
+FLASK_APP=ochyro.py
+#FLASK_DEBUG=1

@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block content %}
+	<div class="title">
+		Edit Profile
+	</div>
+	<form action="" method="post" class="edit-profile-form">
+		{{ form.hidden_tag() }}
+		<div class=form-fields">
+			<div class="profile-username-edit">
+				{{ form.username.label }}
+				{{ form.username(size=32) }}
+				{% for error in form.username.errors %}
+				<span style="form-error">[{{ error }}]</span>
+				{% endfor %}
+			</div>
+			<div class="profile-2fa-edit">
+				{{ form.two_factor_auth.label }}
+				{{ form.two_factor_auth() }}
+			</div>
+			<div class="submit profile-edit-submit">
+				{{ form.submit() }}
+			</div>
+		</div>
+	</form>
+{% endblock %}

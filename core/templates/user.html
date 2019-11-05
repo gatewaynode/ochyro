@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block content %}
+	<div class="user-profile">
+		<div class="profile-username">
+			User: {{ user.username }}
+		</div>
+		<div class="profile-email">
+			Email: {{ user.email }}
+		</div>
+		<div class="profile-last-access">
+			Last Accessed: {{ user.last_login }}
+		</div>
+		<div class="profile-roles">
+			User Roles: {{ user.roles }}
+		</div>
+		<div class="profile-content">
+			{{ data }}
+		</div>
+		{% if user == current_user %}
+		<div class="profile-edit-link">
+			<a href={{ url_for("edit_profile") }}>Edit your profile</a>
+		</div>
+		{% endif %}
+	</div>
+{% endblock %}

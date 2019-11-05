@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block content %}
+	<div class="error-message">
+		<div class="title">
+			File Not Found
+		</div>
+		<div class="goto">
+			<a href={{ url_for("index") }}> Goto Home</a>
+		</div>
+	</div>

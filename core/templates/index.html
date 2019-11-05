@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="title">Vigilance Top Threats</div>
+	<table class="results-table"> 
+		<tr class="header-row">
+            <th class="table-head-item">Domain name</th>
+            <th class="table-head-item">DNS Status</th>
+            <th class="table-head-item">Threat Rating</th>
+		</tr>
+		{% for post in posts %}
+		<tr class="content-item-multiple {{ loop.index }}">
+            <td class="domain-key">{{ post.domain }}</td>
+            <td class="dns-status">{{ post.dns_valid }}</td>
+            <td class="threat-score">{{ post.threat_score }}</td>
+        </tr>
+		{% endfor %}
+	</table>
+{% endblock %}

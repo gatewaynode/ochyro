@@ -1,0 +1,105 @@
+/* Base Styles */
+
+.body-class-base{
+  background-color: black;
+  background-image: url("/static/images/green-binary.png");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  color: green;
+}
+.title{
+  font-size: 1.5em;
+  font-weight: bold;
+  padding: 10px;
+  background-color: #000000;
+  width: max-content;
+}
+
+/*   left-margin: 100px; */
+.login-form{
+  padding: 10px;
+}
+.login-form .remember-me-fields,
+.login-form .register-option{
+  padding-top: 5px;
+/*   margin-left: 27%; */
+}
+.login-form .remember-me-fields label{
+/*   width: 30%; */
+}
+.login-form .submit-button{
+  margin-top: 10px;
+  margin-bottom: 10px;
+/*   margin-left: 27%; */
+}
+
+/* General Form Styles */
+
+input{
+  background-color: #2F2F2F;
+}
+form textarea,
+form input{
+  background-color: #3A3A3A;
+  border: 1px #202020 dotted;
+  margin: 2px;
+  caret-color: #50D214;
+  color: #5FDF2F;
+  font-weight: bold;
+}
+form input#submit{
+  color: #F0F0F0;
+}
+form label{
+  display: inline-block;
+  /*width: 25%;*/
+}
+form span.form-error{
+  color: #f01111;
+}
+form textarea{
+  max-width: 50%;
+}
+form .form-item-description{
+  font-size: 80%;
+  font0weight: lighter;
+  padding-left: 5%;
+}
+
+/* Error Pages */
+body div.error-message{
+  font-weight: bold;
+  color: #f01111;
+  border: 2px #5FDF2F dotted;
+}
+
+/* General Form Table Styles */
+
+table .table-head-item{
+  font-size: 1.2em;
+  background-color: #1F1F1F;
+}
+.content-item-multiple{
+  border: 1px #2F2F2F solid;
+  padding: 5px 15px; 2px; 5px;
+}
+body label{
+  color: green;
+}
+table{
+  background-color: #000000;
+}
+
+/* Results Table Styles */
+
+.results-table{
+  border: 1px #2F2F2F solid;
+  width: 60%;
+  color: green;
+}
+
+/* Cover Background */
+.content{
+  background-color: rgba(0, 0, 0, 0.7);
+}

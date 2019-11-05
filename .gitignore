@@ -1,0 +1,27 @@
+# IDE
+.idea
+.idea/*
+ochyro.kdev4
+*.kdev4
+
+# Virtualenv
+env
+env/*
+
+# Local
+local_files
+local_files/*
+
+# Mac
+.DS_Store
+.DS_Store/*
+
+# Caches
+__pycache__
+__pycache__/*
+app/__pycache__
+app/__pycache__/*
+tests/__pycache__
+tests/__pycache__/*
+.pytest_cache
+.pytest_cache/*

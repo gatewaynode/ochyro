@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block content %}
+	<div class="error-message">
+		<div class="title">
+			An unexpected error has occured
+		</div>
+		<div class="system-message">
+			It's not you, it's me.  But maybe it's you so I logged this.
+		</div>
+		<div class="goto">
+			<a href={{ url_for("index") }}> Goto Home</a>
+		</div>
+	</div>
