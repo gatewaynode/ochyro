@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, TextAreaField, IntegerField, PasswordField, BooleanField, SubmitField
 from wtforms.validators import ValidationError, DataRequired, Email, EqualTo, Length, Regexp
-from app.models import User
+from core.models import User
 
 # The regex r"^\w+$" accepts only alphanumerics and underscores
 

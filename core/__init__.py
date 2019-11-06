@@ -29,4 +29,4 @@ if not app.debug:
     app.logger.setLevel(logging.INFO)
     app.logger.info("Ochyro startup")
 
-from app import routes, models
+from core import routes, models

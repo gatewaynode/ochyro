@@ -1,8 +1,8 @@
 from flask import render_template, flash, redirect, request, url_for
 from flask_login import current_user, login_user, logout_user, login_required
-from app import app, db
-from app.forms import LoginForm, RegistrationForm, EditProfileForm, EditArticleForm
-from app.models import User
+from core import app, db
+from core.forms import LoginForm, RegistrationForm, EditProfileForm, EditArticleForm
+from core.models import User
 from werkzeug.urls import url_parse
 from datetime import datetime
 import html

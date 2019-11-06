@@ -87,3 +87,4 @@ jinja2.exceptions.UndefinedError: 'app.forms.EditArticleForm object' has no attr
 2019-11-04 22:14:50,563 INFO: Ochyro startup [in /home/anonymous/sites/flask_mega/app/__init__.py:30
 2019-11-04 22:20:46,644 INFO: Ochyro startup [in /home/anonymous/sites/flask_mega/app/__init__.py:30
 2019-11-04 22:21:00,361 INFO: Ochyro startup [in /home/anonymous/sites/flask_mega/app/__init__.py:30
+2019-11-05 19:59:19,579 INFO: Ochyro startup [in /home/anonymous/sites/ochyro/core/__init__.py:30

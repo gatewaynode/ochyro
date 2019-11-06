@@ -4,7 +4,7 @@ from invoke import run
 
 @task
 def virtualenv():
-    run("virtualenv --prompt ')> FLASK <( ' env --python python3.7")
+    run("virtualenv --prompt ')> Ochyro <( ' env --python python3.7")
     run("env/bin/pip install -r requirements.txt")
     print("\nVirtualENV Setup Complete.  Now run: source env/bin/activate\n")
 
