@@ -3,6 +3,7 @@
 .idea/*
 ochyro.kdev4
 *.kdev4
+*.kate-swp
 
 # Virtualenv
 env
