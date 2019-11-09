@@ -11,6 +11,8 @@ env/*
 # Local
 local_files
 local_files/*
+logs
+logs/*
 
 # Mac
 .DS_Store
