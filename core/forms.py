@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, TextAreaField, IntegerField, PasswordField, BooleanField, SubmitField
+from wtforms import StringField, TextAreaField, IntegerField, PasswordField, BooleanField, SubmitField, HiddenField
 from wtforms.validators import ValidationError, DataRequired, Email, EqualTo, Length, Regexp
 from core.models import User
 
@@ -22,17 +22,19 @@ class RegistrationForm(FlaskForm):
     def validate_username(self, username):
         user = User.query.filter_by(username=username.data).first()
         if user is not None:
-            raise ValidationError("Please use a different username.")
+            raise ValidationError(f"Username {username.data} already in use.  Please use a different username.")
 
     def validate_email(self, email):
         user = User.query.filter_by(email=email.data).first()
         if user is not None:
-            raise ValidationError("Please us a different email address.")
+            raise ValidationError(f"Email {email.data} already in use.  Please us a different email address.")
 
 
-class EditProfileForm(FlaskForm):
+class EditUserForm(FlaskForm):
     username = StringField("Username", validators=[DataRequired(), Regexp(regex=r"^\w+$", message="Alphanumerics and underscores only.")])
     two_factor_auth = BooleanField("Enable 2FA")
+    node_id = HiddenField()
+    version_id = HiddenField()
     submit = SubmitField("Update Profile")
 
 
@@ -43,4 +45,6 @@ class EditArticleForm(FlaskForm):
     sticky = BooleanField("Sticky", description="Stick to top of lists.", default=False, validators=[DataRequired()])
     anchor = BooleanField("Anchor", description="Stick to bottom of lists.", default=False, validators=[DataRequired()])
     weight = IntegerField("Weight", description="Set's an arbitrary weight", default=0, validators=[DataRequired()])
+    node_id = HiddenField()
+    version_id = HiddenField()
     submit = SubmitField("Save")

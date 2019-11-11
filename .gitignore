@@ -14,6 +14,7 @@ local_files
 local_files/*
 logs
 logs/*
+app.db
 
 # Mac
 .DS_Store

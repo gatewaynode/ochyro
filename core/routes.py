@@ -1,7 +1,7 @@
 from flask import render_template, flash, redirect, request, url_for
 from flask_login import current_user, login_user, logout_user, login_required
 from core import app, db
-from core.forms import LoginForm, RegistrationForm, EditProfileForm, EditArticleForm
+from core.forms import LoginForm, RegistrationForm, EditUserForm, EditArticleForm
 from core.models import User
 from werkzeug.urls import url_parse
 from datetime import datetime
@@ -87,10 +87,10 @@ def user(username):
     return render_template("user.html", user=user, data=html.escape(data, quote=True))
 
 
-@app.route("/edit/profile", methods=["GET", "POST"])
+@app.route("/edit/user", methods=["GET", "POST"])
 @login_required
 def edit_profile():
-    form = EditProfileForm()
+    form = EditUserForm()
     if form.validate_on_submit():
         current_user.username = form.username.data
         db.session.commit()
