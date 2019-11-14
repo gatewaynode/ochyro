@@ -16,19 +16,18 @@ def _hash_node(node):
     node_dict = {
         "id": node.node_id,
         "version": node.version,
-        "hash": node.hash,
+        "hash": node.hash, # Including the previous hash if it exists provides a Merkel chain of authority
         "timestamp": node.timestamp,
         "user_id": node.user_id,
         "user_history": node.user_history,
         "tags": node.tags,
-        "_parents": node.parents,
-        "_children": node._children,
         "first_child": node.first_child,
+        "_parents": node.parents,
+        "parent_max_depth": node.parent_max_depth,
+        "_children": node._children,
+        "child_max_depth": node.child_max_depth,
         "next_node": node.next_node,
         "last_node": node.last_node,
-        "sticky": node.sticky,
-        "anchor": node.anchor,
-        "weight": node.weight
     }
     node_string = json.dumps(node_dict).encode()
     return hashlib.sha256(node_string).hexdigest()
@@ -41,7 +40,10 @@ def _save_node(form, table_name):
     """
     if form.node_id and form.version:
         try:
-            existing_node = Node.query.filter(Node.id == form.node_id, Node.version == form.version).first()
+            existing_node = Node.query.filter(
+                Node.id == int(form.node_id), # Typecast to int as a security measure
+                Node.version == int(form.version) # Typecast to int as a security measure
+            ).first()
         except Exception as e:
             logging.error(traceback.format_exc())
             logging.error("Node id and version not found")
@@ -53,7 +55,7 @@ def _save_node(form, table_name):
                 version=(form.version -= -1),
                 hash=existing_node.hash,
                 timestamp=datetime.utcnow(),
-                user_id="",
+                user_id=current_user.id,
                 user_history="",
                 tags="",
                 _parents="",
@@ -70,8 +72,8 @@ def _save_node(form, table_name):
             db.session.commit()
             return node
     else:
+        # New node creation
         node = Node(
-            id=form.node_id,
             version=1,
             hash="",
             timestamp=datetime.utcnow(),
@@ -93,7 +95,7 @@ def _save_node(form, table_name):
         return node
 
 def edit_user():
-    """Creat or update a user
+    """Update a user
     
     Parameters: form, object.  A WTForms like object.
     """
@@ -101,7 +103,14 @@ def edit_user():
 
 
 def register_user(form):
+    user = User(username=html.escape(form.username.data, quote=True), email=html.escape(form.email.data, quote=True))
+    user.set_password(form.password.data)
+    db.session.add(user)
+    db.session.commit()
+    return f"Congradulations{html.escape(form.username.data, quote=True)}, you are now a registered user!"
 
 
 def save_article(form):
+    """Basic workflow  node create --> artucle create --> node assoicate to article --> node hash
+    """
     pass

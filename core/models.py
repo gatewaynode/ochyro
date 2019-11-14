@@ -10,6 +10,16 @@ def load_user(id):
 
 
 class Node(db.Model):
+    """The node model is the central organizing unit of the content model.
+    
+    This is pervasive, to the extent that almost everything a user interacts with in the site
+    is content organized by at least one node, including the users themselves.  Nodes do not
+    hold content themselves, but they reference content and the relationships of the content.
+    Nodes may hold multiple content references, and content may even reference multiple other
+    nodes, given the base constraint that nodes have only one immutable "first_child" and 
+    content rows can only ever have one immutable "node_id" (these constraints are within the
+    content system).
+    """
     id = db.Column(db.Integer, primary_key=True)
     version = db.Column(db.Integer, index=True)
     hash = db.Column(db.String(140))
@@ -36,6 +46,11 @@ class Node(db.Model):
 
 
 class NodeRevision(db.Model):
+    """All content tables have related revision tables, all changes are saved as revisions.
+    
+    Content updates first save the existing content to it's appropriate revision table 
+    including nodes themselves.  In this way the base tables are always the latest revision.
+    """
     id = db.Column(db.Integer, primary_key=True)
     version = db.Column(db.Integer, index=True)
     hash = db.Column(db.String(140))
@@ -62,6 +77,8 @@ class NodeRevision(db.Model):
 
 
 class User(UserMixin, db.Model):
+    """User content type
+    """
     id = db.Column(db.Integer, primary_key=True)
     version = db.Column(db.Integer, index=True)
     node_id = db.Column(db.Integer, index=True, unique=True)
@@ -86,6 +103,8 @@ class User(UserMixin, db.Model):
 
 
 class UserRevision(UserMixin, db.Model):
+    """User revision table
+    """
     id = db.Column(db.Integer, primary_key=True)
     version = db.Column(db.Integer, index=True)
     node_id = db.Column(db.Integer, index=True, unique=True)
@@ -110,6 +129,11 @@ class UserRevision(UserMixin, db.Model):
 
 
 class Article(db.Model):
+    """The most basic content type, a title field and a body field.
+    
+    The body field whitelists a small subset of HTML and filters out all other special 
+    characters not required to support the HTML.
+    """
     id = db.Column(db.Integer, primary_key=True)
     version = db.Column(db.Integer, index=True)
     node_id = db.Column(db.Integer, index=True)
@@ -130,6 +154,8 @@ class Article(db.Model):
 
 
 class ArticleRevision(db.Model):
+    """The article revisions table
+    """
     id = db.Column(db.Integer, primary_key=True)
     version = db.Column(db.Integer, index=True)
     node_id = db.Column(db.Integer, index=True)
