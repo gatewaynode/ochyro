@@ -6,7 +6,24 @@ from flask_login import UserMixin
 
 @login.user_loader
 def load_user(id):
-    return User.query.get(int(id))
+    return User.query.get(int(id)) #Typecast for security
+
+
+class ContentModel(db.Model):
+    """Parent class for content items to set default common fields
+    """
+    id = db.Column(db.Integer, primary_key=True)
+    version = db.Column(db.Integer, index=True)
+    node_id = db.Column(db.Integer, index=True)
+    hash = db.Column(db.String(140))
+    timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+    lock = db.Column(db.UnicodeText())
+
+
+class ContentType(ContentModel):
+    """This table holds metadata necessary to save and render content types
+    """
+    database_table = db.Column(db.String(200), index=True)
 
 
 class Node(db.Model):
@@ -58,7 +75,7 @@ class NodeRevision(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
     user_history = db.Column(db.UnicodeText())
     tags = db.Column(db.UnicodeText(), index=True)
-    first_child = db.Column(db.Integer, unique=True)
+    first_child = db.Column(db.String(100), unique=True, index=True)
     _parents = db.Column(db.UnicodeText())
     parent_max_depth = db.Column(db.Integer)
     _children = db.Column(db.UnicodeText())
@@ -134,10 +151,13 @@ class Article(db.Model):
     The body field whitelists a small subset of HTML and filters out all other special 
     characters not required to support the HTML.
     """
+    # Common fields
     id = db.Column(db.Integer, primary_key=True)
     version = db.Column(db.Integer, index=True)
     node_id = db.Column(db.Integer, index=True)
     hash = db.Column(db.String(140))
+    lock = db.Column(db.UnicodeText())
+    # Unique fields
     title = db.Column(db.String(200))
     body = db.Column(db.UnicodeText())
     
@@ -156,10 +176,13 @@ class Article(db.Model):
 class ArticleRevision(db.Model):
     """The article revisions table
     """
+    # Common fields
     id = db.Column(db.Integer, primary_key=True)
     version = db.Column(db.Integer, index=True)
     node_id = db.Column(db.Integer, index=True)
     hash = db.Column(db.String(140))
+    lock = db.Column(db.UnicodeText())
+    # Unique fields
     title = db.Column(db.String(200))
     body = db.Column(db.UnicodeText())
     

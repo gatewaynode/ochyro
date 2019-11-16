@@ -1,100 +1,97 @@
 from core import db, login
 from core.models import Node, User, Article
 from datetime import datetime
+from typing import Any
 import hashlib
 import traceback
 import logging
 import json
 #import html
 
-def _hash_node(node):
-    """Hash the node with existing hash to form a Merkel chain (new nodes use an empty value here).  Uglier serialization than pickle but safer.
+def _hash_table(db_object: Any) -> str:
+    """Hash the node with existing hash to form a Merkel chain (new nodes use an empty value here).
     
+    Conditionals to handle the sqlalchemy object reference and timestamp being passed as an 
+    unhashable object.
     Parameters: node, an initialized db.model.Node
     Returns: a SHA256 hash digest
     """
-    node_dict = {
-        "id": node.node_id,
-        "version": node.version,
-        "hash": node.hash, # Including the previous hash if it exists provides a Merkel chain of authority
-        "timestamp": node.timestamp,
-        "user_id": node.user_id,
-        "user_history": node.user_history,
-        "tags": node.tags,
-        "first_child": node.first_child,
-        "_parents": node.parents,
-        "parent_max_depth": node.parent_max_depth,
-        "_children": node._children,
-        "child_max_depth": node.child_max_depth,
-        "next_node": node.next_node,
-        "last_node": node.last_node,
-    }
-    node_string = json.dumps(node_dict).encode()
-    return hashlib.sha256(node_string).hexdigest()
+    for attr, value in vars(db_object).items():
+        values_list = {}
+        if not attr == "_sa_instance_state":
+            if attr == "timestamp":
+                values_list[attr] = str(value)
+            else:
+                values_list[attr] = value
+    # Convert to JSON string, encode, get the sha256 hash and convert to standard output
+    return hashlib.sha256(json.dumps(values_list).encode()).hexdigest()
 
-def _save_node(form, table_name):
-    """Saves a node, updating or creating as necessary
+
+def _register_node():
+    """Create a node to register content to
     
-    Parameters: form, object.  Similar to a WTForm submitted object
-    Parameters: table_name, string.  Conforming to the flat content model of one unique table per content type.
+    This creates an empty node that a piece of content can be attached to.
     """
-    if form.node_id and form.version:
-        try:
-            existing_node = Node.query.filter(
-                Node.id == int(form.node_id), # Typecast to int as a security measure
-                Node.version == int(form.version) # Typecast to int as a security measure
-            ).first()
-        except Exception as e:
-            logging.error(traceback.format_exc())
-            logging.error("Node id and version not found")
-            return False
-        
-        if existing_node:
-            node = Node(
-                id=form.node_id,
-                version=(form.version -= -1),
-                hash=existing_node.hash,
-                timestamp=datetime.utcnow(),
-                user_id=current_user.id,
-                user_history="",
-                tags="",
-                _parents="",
-                _children="",
-                first_child="",
-                next_node="",
-                last_node="",
-                sticky="",
-                anchor="",
-                weight=""
-            )
-            node.hash = _hash_node(node)
-            db.session.add(node)
-            db.session.commit()
-            return node
-    else:
-        # New node creation
-        node = Node(
-            version=1,
-            hash="",
-            timestamp=datetime.utcnow(),
-            user_id="",
-            user_history="",
-            tags="",
-            _parents="",
-            _children="",
-            first_child="",
-            next_node="",
-            last_node="",
-            sticky="",
-            anchor="",
-            weight=""
-        )
-        node.hash = _hash_node(node)
-        db.session.add(node)
-        db.session.commit()
-        return node
+    node = Node(
+        version=1,
+        timestamp=datetime.utcnow(),
+        user_id=current_user.id,
+    )
+    db.session.add(node)
+    db.session.commit()
+    return node
 
-def edit_user():
+
+def _associate_node(node, content):
+    """Complete a node that was registered with a first_child association and hash
+    """
+    node.first_child = content.id
+    node.user_history = json.dumps([{
+        "user_id": node.user_id,
+        "node_version": node.version,
+        "content_id": content.id,
+        "content_version": content.version,
+        "content_table": content.__table__,
+        "timestamp": str(node.timestamp)
+    }])
+    node.hash = _hash_table(node)
+    db.session.add(node)
+    db.session.commit()
+    
+    return (node, content)
+
+
+def node_load(node_id):
+    """ Load a node table by id
+    """
+    try:
+        safe_node_id = int(node_id) # Typecast as a security measure
+    except Exception as e:
+        logging.error(traceback.format_exc())
+        logging.error(f"Security Warning: node_load({node_id}) failed to convert input to a integer!")
+    
+    try:
+        node = Node.query.get(safe_node_id)
+    except Exception as e:
+        logging.error(traceback.format_exc())
+    
+    return node
+
+
+def content_load(content_id, ContentDbModel):
+    """ Load a content row
+    """
+    try:
+        safe_content_id = int(content_id) # Typecast as a security measure
+    except Exception as e:
+        logging.error(traceback.format_exc())
+    
+    content = ContentDbModel.query.get(safe_content_id)
+    
+    return content
+    
+
+def edit_user(form):
     """Update a user
     
     Parameters: form, object.  A WTForms like object.
@@ -111,6 +108,36 @@ def register_user(form):
 
 
 def save_article(form):
-    """Basic workflow  node create --> artucle create --> node assoicate to article --> node hash
+    """Create or update an article content type
+    
+    Basic workflow  node create --> artucle create --> node assoicate to article --> node hash
     """
-    pass
+    if form.node_id and form.node_version:
+        node = node_load(form.node_id)
+        
+        content = content_load(node.first_child, Article)
+        
+        article = Article(
+            version = 
+        )
+            
+    else: # Assume new article
+        node = _register_node()
+        
+        article = Article(
+            version=1,
+            lock = json.dumps({
+                "user_id": current_user.id,
+                "timestamp": str(datetime.utcnow())
+            }),
+            title = form.title,
+            body = form.body
+        )
+        db.session.add(article)
+        db.session.commit()
+        article.hash = _hash_table(article)
+        db.session.add(article)
+        db.session.commit()
+        
+        thingy = _associate_node(node, article)
+        

@@ -1,3 +1,5 @@
+""" Ochyro
+"""
 from core import app, db
 from core.models import User, Article
 

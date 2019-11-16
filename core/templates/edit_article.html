@@ -58,6 +58,10 @@
 			<div class="submit profile-edit-submit">
 				{{ form.submit() }}
 			</div>
+			{% if node.id and node.version %}
+                {{ form.node_id }}
+                {{ form.node_version }}
+			{% endif %}
 		</div>
 	</form>
 {% endblock %}
