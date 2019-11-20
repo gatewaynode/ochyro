@@ -2,6 +2,7 @@ from flask import render_template, flash, redirect, request, url_for
 from flask_login import current_user, login_user, logout_user, login_required
 from core import app, db
 from core.forms import LoginForm, RegistrationForm, EditUserForm, EditArticleForm
+from core.controllers import register_user, save_article
 from core.models import User
 from werkzeug.urls import url_parse
 from datetime import datetime
@@ -13,23 +14,11 @@ import html
 @login_required
 def index():
     posts = [
-        {
-            "domain": "collegeboards.com",
-            "dns_valid": True,
-            "threat_score": 50
-        },
-        {
-            "domain": "collegeboord.com",
-            "dns_valid": True,
-            "threat_score": 10
-        },
-        {
-            "domain": "colegeboard.com",
-            "dns_valid": True,
-            "threat_score": 90
-        }
+        {"domain": "collegeboards.com", "dns_valid": True, "threat_score": 50},
+        {"domain": "collegeboord.com", "dns_valid": True, "threat_score": 10},
+        {"domain": "colegeboard.com", "dns_valid": True, "threat_score": 90},
     ]
-    return(render_template("index.html", title="", posts=posts))
+    return render_template("index.html", title="", posts=posts)
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -40,7 +29,7 @@ def login():
 
     if form.validate_on_submit():
         user = User.query.filter_by(username=form.username.data).first()
-    
+
         if user is None or not user.check_password(form.password.data):
             flash("Invalid username or password")
             return redirect(url_for("login"))
@@ -51,7 +40,6 @@ def login():
         next_page = request.args.get("next")
         if not next_page or url_parse(next_page).netloc != "":
             next_page = url_for("index")
-
 
         return redirect(next_page)
 
@@ -70,11 +58,7 @@ def register():
         return redirect(url_for("index"))
     form = RegistrationForm()
     if form.validate_on_submit():
-        user = User(username=html.escape(form.username.data, quote=True), email=html.escape(form.email.data, quote=True))
-        user.set_password(form.password.data)
-        db.session.add(user)
-        db.session.commit()
-        flash("Congradulations, you are now a registered user!")
+        result = register_user(form)
         return redirect(url_for("login"))
     return render_template("register.html", title="register", form=form)
 
@@ -106,3 +90,10 @@ def edit_profile():
 def edit_article():
     form = EditArticleForm()
     return render_template("edit_article.html", title="Edit Article", form=form)
+
+
+# Sample Node lock{
+#     "user_id": current_user.id,
+#     "username": current_user.username,
+#     "timestamp": str(datetime.utcnow()),
+# }

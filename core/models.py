@@ -4,9 +4,11 @@ from core import db
 from core import login
 from flask_login import UserMixin
 
+
 @login.user_loader
 def load_user(id):
-    return User.query.get(int(id)) #Typecast for security
+    return User.query.get(int(id))  # Typecast for security
+
 
 # Common fields for the content model
 #
@@ -24,20 +26,18 @@ db.Model.timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
 db.Model.lock = db.Column(db.UnicodeText())
 
 
-
-
-
 class Node(db.Model):
     """The node model is the central organizing unit of the content model.
-    
+
     This is pervasive, to the extent that almost everything a user interacts with in the site
     is content organized by at least one node, including the users themselves.  Nodes do not
     hold content themselves, but they reference content and the relationships of the content.
     Nodes may hold multiple content references, and content may even reference multiple other
-    nodes, given the base constraint that nodes have only one immutable "first_child" and 
+    nodes, given the base constraint that nodes have only one immutable "first_child" and
     content rows can only ever have one immutable "node_id" (these constraints are within the
     content system).
     """
+
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
     tags = db.Column(db.UnicodeText(), index=True)
     first_child = db.Column(db.String(200), index=True)
@@ -47,24 +47,25 @@ class Node(db.Model):
     child_max_depth = db.Column(db.Integer)
     next_node = db.Column(db.Integer)
     previous_node = db.Column(db.Integer)
-    
+
     def __repr__(self):
         return {
             "id": self.id,
             "version": self.version,
             "first_child": self.first_child,
             "hash": self.hash,
-            "timestamp": self.timestamp
+            "timestamp": self.timestamp,
         }
 
 
 class NodeRevision(db.Model):
     """All content tables have related revision tables, all changes are saved as revisions.
-    
-    Content updates first save the existing content to it's appropriate revision table 
+
+    Content updates first save the existing content to it's appropriate revision table
     including nodes themselves.  In this way the base tables are always the latest revision.
     """
-    version = db.Column(db.Integer, primary_key=True, index=True) # Revision override
+
+    version = db.Column(db.Integer, primary_key=True, index=True)  # Revision override
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
     tags = db.Column(db.UnicodeText(), index=True)
     first_child = db.Column(db.String(200), index=True)
@@ -74,20 +75,21 @@ class NodeRevision(db.Model):
     child_max_depth = db.Column(db.Integer)
     next_node = db.Column(db.Integer)
     previous_node = db.Column(db.Integer)
-    
+
     def __repr__(self):
         return {
             "id": self.id,
             "version": self.version,
             "first_child": self.first_child,
             "hash": self.hash,
-            "timestamp": self.timestamp
+            "timestamp": self.timestamp,
         }
 
 
 class ContentType(db.Model):
     """This table holds metadata necessary to save and render content types
     """
+
     database_table = db.Column(db.String(200), index=True)
     content_class = db.Column(db.String(200))
     # There will be more here for controllers and views but this gets us started
@@ -96,6 +98,7 @@ class ContentType(db.Model):
 class User(UserMixin, db.Model):
     """User content type
     """
+
     username = db.Column(db.String(64), index=True, unique=True)
     email = db.Column(db.String(120), index=True, unique=True)
     password_hash = db.Column(db.String(128))
@@ -103,11 +106,7 @@ class User(UserMixin, db.Model):
     roles = db.Column(db.UnicodeText())
 
     def __repr__(self):
-        return {
-            "id": self.id,
-            "node_id": self.node_id,
-            "username": self.username
-        }
+        return {"id": self.id, "node_id": self.node_id, "username": self.username}
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -119,7 +118,8 @@ class User(UserMixin, db.Model):
 class UserRevision(UserMixin, db.Model):
     """User revision table
     """
-    version = db.Column(db.Integer, primary_key=True, index=True) # Revision override
+
+    version = db.Column(db.Integer, primary_key=True, index=True)  # Revision override
     username = db.Column(db.String(64), index=True, unique=True)
     email = db.Column(db.String(120), index=True, unique=True)
     password_hash = db.Column(db.String(128))
@@ -127,11 +127,7 @@ class UserRevision(UserMixin, db.Model):
     roles = db.Column(db.UnicodeText())
 
     def __repr__(self):
-        return {
-            "id": self.id,
-            "node_id": self.node_id,
-            "username": self.username
-        }
+        return {"id": self.id, "node_id": self.node_id, "username": self.username}
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -142,13 +138,14 @@ class UserRevision(UserMixin, db.Model):
 
 class Article(db.Model):
     """The most basic content type, a title field and a body field.
-    
-    The body field whitelists a small subset of HTML and filters out all other special 
+
+    The body field whitelists a small subset of HTML and filters out all other special
     characters not required to support the HTML.
     """
+
     title = db.Column(db.String(200))
     body = db.Column(db.UnicodeText())
-    
+
     def __repr__(self):
         return {
             "id": self.id,
@@ -157,18 +154,19 @@ class Article(db.Model):
             "node_id": self.node_id,
             "node_version": self.node_version,
             "hash": self.hash,
-            "title": self.title
+            "title": self.title,
         }
 
 
 class ArticleRevision(db.Model):
     """The article revisions table
     """
+
     # Common fields
-    version = db.Column(db.Integer, primary_key=True, index=True) # Revision override
+    version = db.Column(db.Integer, primary_key=True, index=True)  # Revision override
     title = db.Column(db.String(200))
     body = db.Column(db.UnicodeText())
-    
+
     def __repr__(self):
         return {
             "id": self.id,
@@ -176,5 +174,5 @@ class ArticleRevision(db.Model):
             "node_id": self.node_id,
             "nove_version": self.node_version,
             "hash": self.hash,
-            "title": self.title
+            "title": self.title,
         }
