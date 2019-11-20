@@ -1,5 +1,5 @@
 from core import db, login
-from core.models import Node, User, Article
+from core.models import Node, NodeRevision, User, UserRevision, Article, ArticleRevision
 from datetime import datetime
 from typing import Any
 import hashlib
@@ -16,7 +16,7 @@ def _hash_table(db_object: Any) -> str:
     Parameters: node, an initialized db.model.Node
     Returns: a SHA256 hash digest
     """
-    for attr, value in vars(db_object).items():
+    for attr, value in vars(db_object).items(): # Maybe change this to use __dict__ ?
         values_list = {}
         if not attr == "_sa_instance_state":
             if attr == "timestamp":
@@ -27,7 +27,7 @@ def _hash_table(db_object: Any) -> str:
     return hashlib.sha256(json.dumps(values_list).encode()).hexdigest()
 
 
-def _register_node():
+def _register_node() -> Any:
     """Create a node to register content to
     
     This creates an empty node that a piece of content can be attached to.
@@ -42,18 +42,14 @@ def _register_node():
     return node
 
 
-def _associate_node(node, content):
+def _associate_node(node: Any, content: Any) -> tuple:
     """Complete a node that was registered with a first_child association and hash
     """
-    node.first_child = content.id
-    node.user_history = json.dumps([{
-        "user_id": node.user_id,
-        "node_version": node.version,
+    node.first_child = json.dumps({
         "content_id": content.id,
-        "content_version": content.version,
-        "content_table": content.__table__,
-        "timestamp": str(node.timestamp)
-    }])
+        "content_revision": content.version,
+        "content_type": "Article"
+    })
     node.hash = _hash_table(node)
     db.session.add(node)
     db.session.commit()
@@ -75,6 +71,13 @@ def node_load(node_id):
     except Exception as e:
         logging.error(traceback.format_exc())
     
+    # Load an object by string variable
+    # obj = avail[name]()
+    # or
+    # module = __import__(module_name)
+    # class_ = getattr(module, class_name)
+    # instance = class_()
+    
     return node
 
 
@@ -89,7 +92,14 @@ def content_load(content_id, ContentDbModel):
     content = ContentDbModel.query.get(safe_content_id)
     
     return content
+
+
+def save_revision(content, content_revision):
+    content_revision.__dict__ = content.__dict__.copy()
+    db.session.add(content_revision)
+    db.session.commit()
     
+    return content_revision
 
 def edit_user(form):
     """Update a user
@@ -110,16 +120,43 @@ def register_user(form):
 def save_article(form):
     """Create or update an article content type
     
-    Basic workflow  node create --> artucle create --> node assoicate to article --> node hash
+    Basic workflow  node create --> article create --> node assoicate to article --> node hash
     """
     if form.node_id and form.node_version:
         node = node_load(form.node_id)
         
-        content = content_load(node.first_child, Article)
+        if node.lock:
+            locked = json.loads(node.lock)
+            flash(f"Node is locked by user{locked['username']} since {locked['timestamp']}")
+            flash(f"Edit not saved")
+            return form
         
-        article = Article(
-            version = 
+        old_content = content_load(node.first_child, Article)
+        
+        if old_content.lock:
+            locked = json.loads(node.lock)
+            flash(f"Content is locked by user{locked['username']} since {locked['timestamp']}")
+            flash(f"Edit not saved")
+            return form
+        
+        content_revision = save_revision(old_content, ArticleRevision)
+        
+        new_version_number = content_revision.version + 1
+        
+        updated_article = Article(
+            id=content_revision.id
+            version=new_version,
+            node_id=node.id
+            hash=content_revision.hash,
+            lock="", # This breaks any lock
+            title=form.title.data, #@TODO add extra security measures
+            body=form.body.data #@TODO add extra security measures
         )
+        updated_article.hash = _hash_table(updated_article)
+        db.session.add(updated_article)
+        db.session.commit()
+        
+        return (node, updated_article)
             
     else: # Assume new article
         node = _register_node()
@@ -133,11 +170,13 @@ def save_article(form):
             title = form.title,
             body = form.body
         )
+        # First save get's our article ID to include in the hash
         db.session.add(article)
         db.session.commit()
         article.hash = _hash_table(article)
         db.session.add(article)
         db.session.commit()
         
-        thingy = _associate_node(node, article)
+        data_pair = _associate_node(node, article)
         
+        return data_pair
