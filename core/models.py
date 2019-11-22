@@ -10,20 +10,22 @@ def load_user(id):
     return User.query.get(int(id))  # Typecast for security
 
 
-# Common fields for the content model
-#
+"""Common fields for the content model denoted by leading underscore
+
+These are denoted with a leading single underscore to differentiate from reserved names
+in SQL Alchemy and to distinguish from unique fields."""
 # ID is the pervasive primary key for all tables
-db.Model.id = db.Column(db.Integer, primary_key=True, index=True)
+db.Model._id = db.Column(db.Integer, primary_key=True, index=True)
 # Everything is versioned, this combines to be a second primary key in revision tables
-db.Model.version = db.Column(db.Integer, index=True)
+db.Model._version = db.Column(db.Integer, index=True)
 # Everything has a node and this is it's ID (redundant for nodes themselves)
-db.Model.node_id = db.Column(db.Integer, index=True)
+db.Model._node_id = db.Column(db.Integer, index=True)
 # Every database row has a hash of it's serialized database object before final save
-db.Model.hash = db.Column(db.String(140))
+db.Model._hash = db.Column(db.String(140))
 # Everything in the database is timestamped
-db.Model.timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+db.Model._timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
 # Everything in the database is potentially editable and therefore must be lockable
-db.Model.lock = db.Column(db.UnicodeText())
+db.Model._lock = db.Column(db.UnicodeText())
 
 
 class Node(db.Model):
@@ -36,25 +38,27 @@ class Node(db.Model):
     nodes, given the base constraint that nodes have only one immutable "first_child" and
     content rows can only ever have one immutable "node_id" (these constraints are within the
     content system).
+
+    Potentially recursively nested fields are denoted with a leading double underscore.
+    This is to attempt to make cleared when fields require recursion crontrols in views
+    and controllers.
     """
 
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    user_id = db.Column(db.Integer, db.ForeignKey("user._id"))
     tags = db.Column(db.UnicodeText(), index=True)
     first_child = db.Column(db.String(200), index=True)
-    _parents = db.Column(db.UnicodeText())
-    parent_max_depth = db.Column(db.Integer)
-    _children = db.Column(db.UnicodeText())
-    child_max_depth = db.Column(db.Integer)
-    next_node = db.Column(db.Integer)
-    previous_node = db.Column(db.Integer)
+    __parents = db.Column(db.UnicodeText())
+    __children = db.Column(db.UnicodeText())
+    __next_node = db.Column(db.Integer)
+    __previous_node = db.Column(db.Integer)
 
     def __repr__(self):
         return {
-            "id": self.id,
-            "version": self.version,
+            "id": self._id,
+            "version": self._version,
             "first_child": self.first_child,
-            "hash": self.hash,
-            "timestamp": self.timestamp,
+            "hash": self._hash,
+            "timestamp": self._timestamp,
         }
 
 
@@ -65,16 +69,14 @@ class NodeRevision(db.Model):
     including nodes themselves.  In this way the base tables are always the latest revision.
     """
 
-    version = db.Column(db.Integer, primary_key=True, index=True)  # Revision override
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    user_id = db.Column(db.Integer, db.ForeignKey("user._id"))
     tags = db.Column(db.UnicodeText(), index=True)
     first_child = db.Column(db.String(200), index=True)
-    _parents = db.Column(db.UnicodeText())
-    parent_max_depth = db.Column(db.Integer)
-    _children = db.Column(db.UnicodeText())
-    child_max_depth = db.Column(db.Integer)
-    next_node = db.Column(db.Integer)
-    previous_node = db.Column(db.Integer)
+    _version = db.Column(db.Integer, primary_key=True, index=True)  # Revision override
+    __parents = db.Column(db.UnicodeText())
+    __children = db.Column(db.UnicodeText())
+    __next_node = db.Column(db.Integer)
+    __previous_node = db.Column(db.Integer)
 
     def __repr__(self):
         return {
@@ -106,7 +108,7 @@ class User(UserMixin, db.Model):
     roles = db.Column(db.UnicodeText())
 
     def __repr__(self):
-        return {"id": self.id, "node_id": self.node_id, "username": self.username}
+        return {"id": self._id, "node_id": self.node_id, "username": self.username}
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -119,7 +121,7 @@ class UserRevision(UserMixin, db.Model):
     """User revision table
     """
 
-    version = db.Column(db.Integer, primary_key=True, index=True)  # Revision override
+    _version = db.Column(db.Integer, primary_key=True, index=True)  # Revision override
     username = db.Column(db.String(64), index=True, unique=True)
     email = db.Column(db.String(120), index=True, unique=True)
     password_hash = db.Column(db.String(128))
@@ -127,7 +129,7 @@ class UserRevision(UserMixin, db.Model):
     roles = db.Column(db.UnicodeText())
 
     def __repr__(self):
-        return {"id": self.id, "node_id": self.node_id, "username": self.username}
+        return {"id": self._id, "node_id": self.node_id, "username": self.username}
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -148,13 +150,12 @@ class Article(db.Model):
 
     def __repr__(self):
         return {
-            "id": self.id,
-            "content_version": self.content_version,
+            "id": self._id,
             "content_version": self.content_version,
             "node_id": self.node_id,
-            "node_version": self.node_version,
-            "hash": self.hash,
+            "hash": self._hash,
             "title": self.title,
+            "body": self.body,
         }
 
 
@@ -163,7 +164,7 @@ class ArticleRevision(db.Model):
     """
 
     # Common fields
-    version = db.Column(db.Integer, primary_key=True, index=True)  # Revision override
+    _version = db.Column(db.Integer, primary_key=True, index=True)  # Revision override
     title = db.Column(db.String(200))
     body = db.Column(db.UnicodeText())
 
@@ -172,7 +173,7 @@ class ArticleRevision(db.Model):
             "id": self.id,
             "content_version": self.content_version,
             "node_id": self.node_id,
-            "nove_version": self.node_version,
-            "hash": self.hash,
+            "hash": self._hash,
             "title": self.title,
+            "body": self.body,
         }

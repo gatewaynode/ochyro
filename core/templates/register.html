@@ -35,6 +35,15 @@
                 <span class="form-error">[{{ error }}]</span>
                 {% endfor %}
             </div>
+            {% if node.id and node.version %}
+                      {{ form.node_id(value=node.id) }}
+                      {{ form.node_version(value=node.version) }}
+            {% else %}
+            {% if node.id and node.version %}
+                      {{ form.node_id }}
+                      {{ form.node_version }}
+            {% endif %}
+      			{% endif %}
             <div class="submit-button">
                 {{ form.submit }}
             </div>

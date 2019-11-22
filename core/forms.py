@@ -54,6 +54,8 @@ class RegistrationForm(FlaskForm):
     password2 = PasswordField(
         "Repeat Password", validators=[DataRequired(), EqualTo("password")]
     )
+    node_id = HiddenField()
+    node_version = HiddenField()
     submit = SubmitField("Register")
 
     def validate_username(self, username):
@@ -127,5 +129,5 @@ class EditArticleForm(FlaskForm):
         validators=[DataRequired()],
     )
     node_id = HiddenField()
-    version_id = HiddenField()
+    node_version = HiddenField()
     submit = SubmitField("Save")

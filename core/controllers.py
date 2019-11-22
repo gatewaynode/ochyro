@@ -1,15 +1,14 @@
 from flask import flash
+from flask_login import current_user
 from core import db, login
 from core.models import Node, NodeRevision, User, UserRevision, Article, ArticleRevision
 from datetime import datetime
-
-# from typing import Any
 import hashlib
 import traceback
 import logging
 import json
-
-# import html
+import html
+from pprint import pprint
 
 
 def _hash_table(db_object):
@@ -31,12 +30,44 @@ def _hash_table(db_object):
     return hashlib.sha256(json.dumps(values_list).encode()).hexdigest()
 
 
+# Sample Node lock{
+#     "user_id": current_user.id,
+#     "username": current_user.username,
+#     "timestamp": str(datetime.utcnow()),
+# }
+def _check_node_lock(lock):
+    if lock:
+        locked = json.loads(lock)
+        if locked["user_id"] == current_user._id:
+            return False
+        flash(
+            f"This node has been locked by {locked['username']} since {locked['timestamp']}."
+        )
+        return True
+    return False
+
+
+def _check_content_lock(lock):
+    if lock:
+        locked = json.loads(lock)
+        if locked["user_id"] == current_user._id:
+            return False
+        flash(
+            f"This content has been locked by {locked['username']} since {locked['timestamp']}."
+        )
+        return True
+    return False
+
+
 def _register_node():
     """Create a node to register content to
 
     This creates an empty node that a piece of content can be attached to.
     """
-    node = Node(version=1, timestamp=datetime.utcnow(), user_id=current_user.id,)
+    if current_user.is_authenticated:
+        node = Node(_version=1, _timestamp=datetime.utcnow(), user_id=current_user._id)
+    else:
+        node = Node(_version=1, _timestamp=datetime.utcnow(), user_id=0)
     db.session.add(node)
     db.session.commit()
     return node
@@ -47,12 +78,12 @@ def _associate_node(node, content):
     """
     node.first_child = json.dumps(
         {
-            "content_id": content.id,
-            "content_revision": content.version,
+            "content_id": content._id,
+            "content_revision": content._version,
             "content_type": "Article",
         }
     )
-    node.hash = _hash_table(node)
+    node._hash = _hash_table(node)
     db.session.add(node)
     db.session.commit()
 
@@ -123,39 +154,26 @@ def save_user(form):
 
     Parameters: form, object.  A WTForms like object.
     """
-    if form.node_id and form.node_version:
-        node = node_load(form.form_id)
-
-        if node.lock:
-            locked = json.loads(node.lock)
-            flash(
-                f"This users node is locked by {locked['username']} since {locked['timestamp']}"
-            )
-            flash(f"User update not saved")
+    pprint(vars(form))
+    if form.node_id.data and form.node_version.data:  # Assume update
+        node = node_load(form._node_id.data)
+        if _check_node_lock(node._lock):
             return form
 
         existing_user = content_load(node.first_child, User)
-
-        if existing_user.lock:
-            locked = json.loads(existing_user.lock)
-            flash(
-                f"User profile is locked by {locked['username']} since {locked['timestamp']}"
-            )
-            flash(f"User update not saved")
+        if _check_content_lock(existing_user._lock):
             return form
 
         user_revision = save_revision(existing_user, UserRevision)
-
         new_version_number = user_revision.version + 1
-
         updated_user = User(
-            id=user_revision.id,
-            version=new_version_number,
-            node_id=node.id,
-            hash=user_revision.hash,
-            lock="",  # This breaks any lock
+            _id=user_revision._id,
+            _version=new_version_number,
+            _node_id=node._id,
+            _hash=user_revision._hash,
+            _lock="",
             username=html.escape(form.username.data, quote=True),
-            email=html.esscape(form.email.data, quote=True),
+            email=html.escape(form.email.data, quote=True),
         )
         updated_user.set_password(form.password.data)
         updated_user.hash = _hash_table(updated_user)
@@ -168,15 +186,16 @@ def save_user(form):
         node = _register_node()
 
         user = User(
-            version=1,
-            lock="",
+            _version=1,
+            _lock="",
+            _node_id=node._id,
             username=html.escape(form.username.data, quote=True),
-            email=html.esscape(form.email.data, quote=True),
+            email=html.escape(form.email.data, quote=True),
         )
         user.set_password(form.password.data)
         db.session.add(user)
         db.session.commit()
-        user.hash = _hash_table(user)
+        user._hash = _hash_table(user)  # Now that we have the id we can hash
         db.session.add(user)
         db.session.commit()
 
@@ -189,40 +208,26 @@ def save_article(form):
     Basic workflow:
     node create --> article create --> node assoicate to article --> node hash
     """
-    if form.node_id and form.node_version:
-        node = node_load(form.node_id)
-
-        if node.lock:
-            locked = json.loads(node.lock)
-            flash(
-                f"Node is locked by user{locked['username']} since {locked['timestamp']}"
-            )
-            flash(f"Edit not saved")
+    if form.node_id.data and form.node_version.data:  # Assume update
+        node = node_load(form.node_id.data)
+        if _check_node_lock(node._lock):
             return form
 
         existing_content = content_load(node.first_child, Article)
-
-        if existing_content.lock:
-            locked = json.loads(node.lock)
-            flash(
-                f"Content is locked by user{locked['username']} since {locked['timestamp']}"
-            )
-            flash(f"Edit not saved")
+        if _check_content_lock(existing_content._lock):
             return form
 
         content_revision = save_revision(existing_content, ArticleRevision)
-
         new_version_number = content_revision.version + 1
-
         updated_article = Article(
-            version=new_version_number,
-            node_id=node.id,
-            hash=content_revision.hash,
-            lock="",  # This breaks any lock
+            _version=new_version_number,
+            _node_id=node._id,
+            _hash=content_revision._hash,
+            _lock="",
             title=form.title.data,  # @TODO add extra security measures
             body=form.body.data,  # @TODO add extra security measures
         )
-        updated_article.hash = _hash_table(updated_article)
+        updated_article._hash = _hash_table(updated_article)
         db.session.add(updated_article)
         db.session.commit()
 
@@ -231,11 +236,11 @@ def save_article(form):
     else:  # Assume new article
         node = _register_node()
 
-        article = Article(version=1, lock="", title=form.title, body=form.body,)
+        article = Article(version=1, _lock="", title=form.title, body=form.body,)
         # First save get's our article ID to include in the hash
         db.session.add(article)
         db.session.commit()
-        article.hash = _hash_table(article)
+        article._hash = _hash_table(article)  # Hash after getting id
         db.session.add(article)
         db.session.commit()
 

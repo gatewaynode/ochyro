@@ -2,7 +2,7 @@ from flask import render_template, flash, redirect, request, url_for
 from flask_login import current_user, login_user, logout_user, login_required
 from core import app, db
 from core.forms import LoginForm, RegistrationForm, EditUserForm, EditArticleForm
-from core.controllers import register_user, save_article
+from core.controllers import save_user, save_article
 from core.models import User
 from werkzeug.urls import url_parse
 from datetime import datetime
@@ -57,10 +57,12 @@ def register():
     if current_user.is_authenticated:
         return redirect(url_for("index"))
     form = RegistrationForm()
+    node = type("node", (object,), {})()
     if form.validate_on_submit():
-        result = register_user(form)
+        # result = register_user(form)
+        result = save_user(form)
         return redirect(url_for("login"))
-    return render_template("register.html", title="register", form=form)
+    return render_template("register.html", title="register", form=form, node=node)
 
 
 @app.route("/user/<username>")
@@ -90,10 +92,3 @@ def edit_profile():
 def edit_article():
     form = EditArticleForm()
     return render_template("edit_article.html", title="Edit Article", form=form)
-
-
-# Sample Node lock{
-#     "user_id": current_user.id,
-#     "username": current_user.username,
-#     "timestamp": str(datetime.utcnow()),
-# }
