@@ -1,5 +1,11 @@
 from flask import render_template, flash, redirect, request, url_for
-from flask_login import current_user, login_user, logout_user, login_required
+from flask_login import (
+    current_user,
+    login_user,
+    logout_user,
+    login_required,
+    login_manager,
+)
 from core import app, db
 from core.forms import LoginForm, RegistrationForm, EditUserForm, EditArticleForm
 from core.controllers import save_user, save_article
@@ -7,6 +13,13 @@ from core.models import User
 from werkzeug.urls import url_parse
 from datetime import datetime
 import html
+
+
+# Might need this down the road: https://flask-login.readthedocs.io/en/latest/
+# But for now adding the get_id() class to the User model seems to have worked
+# @login_manager.user_loader
+# def load_user(user_id):
+#     return User.query.filter_by(_id=int(user_id)).first()
 
 
 @app.route("/")
