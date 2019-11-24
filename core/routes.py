@@ -9,6 +9,7 @@ from flask_login import (
 from core import app, db
 from core.forms import LoginForm, RegistrationForm, EditUserForm, EditArticleForm
 from core.controllers import save_user, save_article
+from core.views import view_front_page
 from core.models import User
 from werkzeug.urls import url_parse
 from datetime import datetime
@@ -24,14 +25,14 @@ import html
 
 @app.route("/")
 @app.route("/index")
-@login_required
 def index():
     posts = [
         {"domain": "collegeboards.com", "dns_valid": True, "threat_score": 50},
         {"domain": "collegeboord.com", "dns_valid": True, "threat_score": 10},
         {"domain": "colegeboard.com", "dns_valid": True, "threat_score": 90},
     ]
-    return render_template("index.html", title="", posts=posts)
+    articles = view_front_page()
+    return render_template("index.html", title="", posts=posts, articles=articles)
 
 
 @app.route("/login", methods=["GET", "POST"])

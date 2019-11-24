@@ -90,6 +90,7 @@ def _associate_node(node, content, content_type):
     return (node, content)
 
 
+# @TODO move this to views
 def node_load(node_id):
     """ Load a node table by id
     """
@@ -116,6 +117,7 @@ def node_load(node_id):
     return node
 
 
+# @TODO Move this to views
 def content_load(content_id, ContentDbModel):
     """ Load a content row
     """

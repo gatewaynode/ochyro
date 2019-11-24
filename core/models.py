@@ -1,8 +1,9 @@
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
-from core import db
+from core import db, login
 from core import login
 from flask_login import UserMixin
+import json
 
 
 @login.user_loader
@@ -81,11 +82,11 @@ class NodeRevision(db.Model):
 
     def __repr__(self):
         return {
-            "id": self.id,
-            "version": self.version,
+            "_id": self.id,
+            "_version": self.version,
             "first_child": self.first_child,
-            "hash": self.hash,
-            "timestamp": self.timestamp,
+            "_hash": self.hash,
+            "_timestamp": self.timestamp,
         }
 
 
@@ -124,7 +125,7 @@ class User(UserMixin, db.Model):
     roles = db.Column(db.UnicodeText())
 
     def __repr__(self):
-        return {"id": self._id, "node_id": self.node_id, "username": self.username}
+        return {"_id": self._id, "_node_id": self.node_id, "username": self.username}
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -150,7 +151,7 @@ class UserRevision(UserMixin, db.Model):
     roles = db.Column(db.UnicodeText())
 
     def __repr__(self):
-        return {"id": self._id, "node_id": self.node_id, "username": self.username}
+        return {"_id": self._id, "_node_id": self.node_id, "username": self.username}
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -171,14 +172,15 @@ class Article(db.Model):
     body = db.Column(db.UnicodeText())
 
     def __repr__(self):
-        return {
-            "id": self._id,
-            "content_version": self.content_version,
-            "node_id": self.node_id,
-            "hash": self._hash,
-            "title": self.title,
-            "body": self.body,
-        }
+        return json.dumps(
+            {
+                "_id": self._id,
+                "_node_id": self._node_id,
+                "_hash": self._hash,
+                "title": self.title,
+                "body": self.body,
+            }
+        )
 
 
 class ArticleRevision(db.Model):
@@ -192,11 +194,12 @@ class ArticleRevision(db.Model):
     body = db.Column(db.UnicodeText())
 
     def __repr__(self):
-        return {
-            "id": self.id,
-            "content_version": self.content_version,
-            "node_id": self.node_id,
-            "hash": self._hash,
-            "title": self.title,
-            "body": self.body,
-        }
+        return json.dumps(
+            {
+                "_id": self._id,
+                "_node_id": self._node_id,
+                "_hash": self._hash,
+                "title": self.title,
+                "body": self.body,
+            }
+        )
