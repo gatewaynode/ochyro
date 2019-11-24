@@ -104,4 +104,23 @@ def edit_profile():
 @login_required
 def edit_article():
     form = EditArticleForm()
-    return render_template("edit_article.html", title="Edit Article", form=form)
+    if form.validate_on_submit():
+        save_article(form)
+        return redirect(url_for("index"))
+    return render_template("edit_article.html", title="Create Article", form=form)
+
+
+@app.route("/edit/article/<node>/<version>", methods=["GET", "POST"])
+@login_required
+def edit_article_node(node, version):
+    form = EditArticleForm()
+    if form.validate_on_submit():
+        save_article(form)
+        return redirect(url_for("index"))
+    return render_template(
+        "edit_article.html",
+        title="Edit Article",
+        form=form,
+        node_id=node,
+        node_version=version,
+    )

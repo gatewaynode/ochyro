@@ -73,14 +73,14 @@ def _register_node():
     return node
 
 
-def _associate_node(node, content):
+def _associate_node(node, content, content_type):
     """Complete a node that was registered with a first_child association and hash
     """
     node.first_child = json.dumps(
         {
             "content_id": content._id,
             "content_revision": content._version,
-            "content_type": "Article",
+            "content_type": content_type,
         }
     )
     node._hash = _hash_table(node)
@@ -199,7 +199,9 @@ def save_user(form):
         db.session.add(user)
         db.session.commit()
 
-        data_pair = _associate_node(node, user)
+        data_pair = _associate_node(node, user, 1)
+
+        return data_pair
 
 
 def save_article(form):
@@ -236,7 +238,13 @@ def save_article(form):
     else:  # Assume new article
         node = _register_node()
 
-        article = Article(version=1, _lock="", title=form.title, body=form.body,)
+        article = Article(
+            _version=1,
+            _node_id=node._id,
+            _lock="",
+            title=form.title.data,
+            body=form.body.data,
+        )
         # First save get's our article ID to include in the hash
         db.session.add(article)
         db.session.commit()
@@ -244,6 +252,6 @@ def save_article(form):
         db.session.add(article)
         db.session.commit()
 
-        data_pair = _associate_node(node, article)
+        data_pair = _associate_node(node, article, 2)
 
         return data_pair

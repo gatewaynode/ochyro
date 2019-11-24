@@ -69,6 +69,7 @@ class NodeRevision(db.Model):
     including nodes themselves.  In this way the base tables are always the latest revision.
     """
 
+    # content_type = db.Column(db.Integer) # After we build the type system
     user_id = db.Column(db.Integer, db.ForeignKey("user._id"))
     tags = db.Column(db.UnicodeText(), index=True)
     first_child = db.Column(db.String(200), index=True)
@@ -94,6 +95,20 @@ class ContentType(db.Model):
 
     database_table = db.Column(db.String(200), index=True)
     content_class = db.Column(db.String(200))
+    editable_fields = db.Column(db.UnicodeText())
+    viewable_fields = db.Column(db.UnicodeText())
+    # There will be more here for controllers and views but this gets us started
+
+
+class ContentTypeRevision(db.Model):
+    """This table holds metadata necessary to save and render content types
+    """
+
+    _version = db.Column(db.Integer, primary_key=True, index=True)  # Revision override
+    database_table = db.Column(db.String(200), index=True)
+    content_class = db.Column(db.String(200))
+    editable_fields = db.Column(db.UnicodeText())
+    viewable_fields = db.Column(db.UnicodeText())
     # There will be more here for controllers and views but this gets us started
 
 
@@ -101,6 +116,7 @@ class User(UserMixin, db.Model):
     """User content type
     """
 
+    # content_type = db.Column(db.Integer) # After we build the type system
     username = db.Column(db.String(64), index=True, unique=True)
     email = db.Column(db.String(120), index=True, unique=True)
     password_hash = db.Column(db.String(128))
@@ -116,6 +132,7 @@ class User(UserMixin, db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
+    # This is required as we added the underscore to id changing from the default
     def get_id(self):
         return int(self._id)
 
@@ -125,6 +142,7 @@ class UserRevision(UserMixin, db.Model):
     """
 
     _version = db.Column(db.Integer, primary_key=True, index=True)  # Revision override
+    # content_type = db.Column(db.Integer) # After we build the type system
     username = db.Column(db.String(64), index=True, unique=True)
     email = db.Column(db.String(120), index=True, unique=True)
     password_hash = db.Column(db.String(128))
@@ -148,6 +166,7 @@ class Article(db.Model):
     characters not required to support the HTML.
     """
 
+    # content_type = db.Column(db.Integer) # After we build the type system
     title = db.Column(db.String(200))
     body = db.Column(db.UnicodeText())
 
@@ -166,6 +185,7 @@ class ArticleRevision(db.Model):
     """The article revisions table
     """
 
+    # content_type = db.Column(db.Integer) # After we build the type system
     # Common fields
     _version = db.Column(db.Integer, primary_key=True, index=True)  # Revision override
     title = db.Column(db.String(200))

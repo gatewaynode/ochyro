@@ -56,6 +56,7 @@ class RegistrationForm(FlaskForm):
     )
     node_id = HiddenField()
     node_version = HiddenField()
+    content_type = HiddenField()
     submit = SubmitField("Register")
 
     def validate_username(self, username):
@@ -84,6 +85,7 @@ class EditUserForm(FlaskForm):
     two_factor_auth = BooleanField("Enable 2FA")
     node_id = HiddenField()
     version_id = HiddenField()
+    content_type = HiddenField(value="User")
     submit = SubmitField("Update Profile")
 
 
@@ -110,24 +112,7 @@ class EditArticleForm(FlaskForm):
         default="Untagged",
         validators=[DataRequired()],
     )
-    sticky = BooleanField(
-        "Sticky",
-        description="Stick to top of lists.",
-        default=False,
-        validators=[DataRequired()],
-    )
-    anchor = BooleanField(
-        "Anchor",
-        description="Stick to bottom of lists.",
-        default=False,
-        validators=[DataRequired()],
-    )
-    weight = IntegerField(
-        "Weight",
-        description="Set's an arbitrary weight",
-        default=0,
-        validators=[DataRequired()],
-    )
     node_id = HiddenField()
     node_version = HiddenField()
+    content_type = HiddenField()
     submit = SubmitField("Save")

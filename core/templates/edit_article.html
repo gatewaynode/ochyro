@@ -31,34 +31,10 @@
 				<span style="form-error">[{{ error }}]</span>
 				{% endfor %}
 			</div>
-			<div class="article sticky-edit">
-                {{ form.sticky.label }}
-                {{ form.sticky() }}
-                <div class="form-item-description">{{ form.sticky.description }}</div>
-                {% for error in form.sticky.errors %}
-				<span style="form-error">[{{ error }}]</span>
-				{% endfor %}
-			</div>
-			<div class="article anchor-edit">
-                {{ form.anchor.label }}
-                {{ form.anchor() }}
-                <div class="form-item-description">{{ form.anchor.description }}</div>
-                {% for error in form.anchor.errors %}
-				<span style="form-error">[{{ error }}]</span>
-				{% endfor %}
-            </div>
-            <div class="article weight-edit">
-                {{ form.weight.label }}
-                {{ form.weight() }}
-                <div class="form-item-description">{{ form.weight.description }}</div>
-                {% for error in form.weight.errors %}
-				<span style="form-error">[{{ error }}]</span>
-				{% endfor %}
-            </div>
 			<div class="submit profile-edit-submit">
 				{{ form.submit() }}
 			</div>
-			{% if node.id and node.version %}
+			{% if node_id and node_version %}
                 {{ form.node_id }}
                 {{ form.node_version }}
 			{% endif %}
