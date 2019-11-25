@@ -55,11 +55,11 @@ class Node(db.Model):
 
     def __repr__(self):
         return {
-            "id": self._id,
-            "version": self._version,
+            "_id": self._id,
+            "_version": self._version,
             "first_child": self.first_child,
-            "hash": self._hash,
-            "timestamp": self._timestamp,
+            "_hash": self._hash,
+            "_timestamp": self._timestamp,
         }
 
 

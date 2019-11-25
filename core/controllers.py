@@ -1,7 +1,16 @@
 from flask import flash
 from flask_login import current_user
 from core import db, login
-from core.models import Node, NodeRevision, User, UserRevision, Article, ArticleRevision
+from core.models import (
+    Node,
+    NodeRevision,
+    ContentType,
+    ContentTypeRevision,
+    User,
+    UserRevision,
+    Article,
+    ArticleRevision,
+)
 from datetime import datetime
 import hashlib
 import traceback
@@ -90,45 +99,46 @@ def _associate_node(node, content, content_type):
     return (node, content)
 
 
-# @TODO move this to views
-def node_load(node_id):
+def load_node(node_id, node_version=None):
     """ Load a node table by id
     """
+    if node_id and not node_version:
+        try:
+            safe_node_id = int(node_id)  # Typecast as a security measure
+        except Exception as e:
+            logging.error(traceback.format_exc())
+            logging.error(
+                f"Security Warning: load_node({node_id}) failed to convert input to a integer!"
+            )
+
+        try:
+            node = Node.query.get(safe_node_id)
+            return node
+        except Exception as e:
+            logging.error(traceback.format_exc())
+    else:
+        pass
+
+
+def load_content(node):
+    first_child = json.loads(node.first_child)
+
     try:
-        safe_node_id = int(node_id)  # Typecast as a security measure
+        safe_content_id = int(
+            first_child["content_id"]
+        )  # Typecast as a security measure
     except Exception as e:
         logging.error(traceback.format_exc())
         logging.error(
-            f"Security Warning: node_load({node_id}) failed to convert input to a integer!"
+            f"Security Warning: load_content({node_id}) failed to convert input to a integer!"
         )
 
-    try:
-        node = Node.query.get(safe_node_id)
-    except Exception as e:
-        logging.error(traceback.format_exc())
-
-    # Load an object by string variable
-    # obj = avail[name]()
-    # or
-    # module = __import__(module_name)
-    # class_ = getattr(module, class_name)
-    # instance = class_()
-
-    return node
-
-
-# @TODO Move this to views
-def content_load(content_id, ContentDbModel):
-    """ Load a content row
-    """
-    try:
-        safe_content_id = int(content_id)  # Typecast as a security measure
-    except Exception as e:
-        logging.error(traceback.format_exc())
-
-    content = ContentDbModel.query.get(safe_content_id)
-
-    return content
+    # @TODO use the content type to get the dynamic class loading strings
+    # content_type = ContentType.query.get(first_child["content_type"])
+    content_mod = __import__("core.models", fromlist=["Article"])
+    ContentClass = getattr(content_mod, "Article")
+    content = ContentClass.query.get(safe_content_id)
+    return (node, content)
 
 
 def save_revision(content, content_revision):
@@ -139,16 +149,16 @@ def save_revision(content, content_revision):
     return content_revision
 
 
-def register_user(form):
-    user = User(
-        username=html.escape(form.username.data, quote=True),
-        email=html.escape(form.email.data, quote=True),
-    )
-    user.set_password(form.password.data)
-    db.session.add(user)
-    db.session.commit()
-    flash("Congradulations, you are now a registered user!")
-    return f"Congradulations{html.escape(form.username.data, quote=True)}, you are now a registered user!"
+# def register_user(form):
+#     user = User(
+#         username=html.escape(form.username.data, quote=True),
+#         email=html.escape(form.email.data, quote=True),
+#     )
+#     user.set_password(form.password.data)
+#     db.session.add(user)
+#     db.session.commit()
+#     flash("Congradulations, you are now a registered user!")
+#     return f"Congradulations{html.escape(form.username.data, quote=True)}, you are now a registered user!"
 
 
 def save_user(form):
@@ -158,7 +168,7 @@ def save_user(form):
     """
     pprint(vars(form))
     if form.node_id.data and form.node_version.data:  # Assume update
-        node = node_load(form._node_id.data)
+        node = load_node(form._node_id.data)
         if _check_node_lock(node._lock):
             return form
 
@@ -213,7 +223,7 @@ def save_article(form):
     node create --> article create --> node assoicate to article --> node hash
     """
     if form.node_id.data and form.node_version.data:  # Assume update
-        node = node_load(form.node_id.data)
+        node = load_node(form.node_id.data)
         if _check_node_lock(node._lock):
             return form
 

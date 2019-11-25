@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="title">Articles</div>
+    {% for article in articles %}
+      <div class="content front-page article">
+        <div class="title content-title node-id-{{ article.node["_id"] }}">
+          {{ article.content["title"] }}
+        </div>
+        <div class="body content-body">
+          {{ article.content["body"] }}
+        </div>
+      </div>
+    {% endfor %}
+{% endblock %}

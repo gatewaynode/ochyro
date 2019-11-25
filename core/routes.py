@@ -8,12 +8,13 @@ from flask_login import (
 )
 from core import app, db
 from core.forms import LoginForm, RegistrationForm, EditUserForm, EditArticleForm
-from core.controllers import save_user, save_article
+from core.controllers import save_user, save_article, load_node, load_content
 from core.views import view_front_page
 from core.models import User
 from werkzeug.urls import url_parse
 from datetime import datetime
 import html
+from pprint import pprint
 
 
 # Might need this down the road: https://flask-login.readthedocs.io/en/latest/
@@ -26,13 +27,8 @@ import html
 @app.route("/")
 @app.route("/index")
 def index():
-    posts = [
-        {"domain": "collegeboards.com", "dns_valid": True, "threat_score": 50},
-        {"domain": "collegeboord.com", "dns_valid": True, "threat_score": 10},
-        {"domain": "colegeboard.com", "dns_valid": True, "threat_score": 90},
-    ]
     articles = view_front_page()
-    return render_template("index.html", title="", posts=posts, articles=articles)
+    return render_template("index.html", title="", articles=articles)
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -73,7 +69,6 @@ def register():
     form = RegistrationForm()
     node = type("node", (object,), {})()
     if form.validate_on_submit():
-        # result = register_user(form)
         result = save_user(form)
         return redirect(url_for("login"))
     return render_template("register.html", title="register", form=form, node=node)
@@ -113,15 +108,33 @@ def edit_article():
 
 @app.route("/edit/article/<node>/<version>", methods=["GET", "POST"])
 @login_required
-def edit_article_node(node, version):
+def edit_article_node(node=None, version=None):
     form = EditArticleForm()
     if form.validate_on_submit():
         save_article(form)
         return redirect(url_for("index"))
-    return render_template(
-        "edit_article.html",
-        title="Edit Article",
-        form=form,
-        node_id=node,
-        node_version=version,
-    )
+    if node and version:
+
+        return render_template(
+            "edit_article.html",
+            title="Edit Article",
+            form=form,
+            node_id=node,
+            node_version=version,
+        )
+
+
+@app.route("/article/<_id>")
+@login_required
+def view_article(_id):
+    content = view_article_node(_id)
+    return render_template("article.html", title=content[1].title, content=content)
+
+
+@app.route("/debug", methods=["GET"])
+@login_required
+def debug_something():
+    node = load_node(2)
+    content = load_content(node)
+    pprint(content)
+    return node
