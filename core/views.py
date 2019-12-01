@@ -17,8 +17,8 @@ def view_front_page():
                     "_version": node._version,
                     "_hash": node._hash,
                     "first_child": node.first_child,
-                    "__parents": node._Node__parents,
-                    "__children": node._Node__children,
+                    "__parents": node.layer_parents,
+                    "__children": node.layer_children,
                 },
                 "content": {
                     "_id": content._id,

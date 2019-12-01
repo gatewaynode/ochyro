@@ -19,7 +19,7 @@ in SQL Alchemy and to distinguish from unique fields."""
 db.Model._id = db.Column(db.Integer, primary_key=True, index=True)
 # Everything is versioned, this combines to be a second primary key in revision tables
 db.Model._version = db.Column(db.Integer, index=True)
-# Everything has a node and this is it's ID (redundant for nodes themselves)
+# Everything not a node itself has a node and this is it's ID
 db.Model._node_id = db.Column(db.Integer, index=True)
 # Every database row has a hash of it's serialized database object before final save
 db.Model._hash = db.Column(db.String(140))
@@ -46,21 +46,12 @@ class Node(db.Model):
     """
 
     user_id = db.Column(db.Integer, db.ForeignKey("user._id"))
-    tags = db.Column(db.UnicodeText(), index=True)
+    meta = db.Column(db.UnicodeText(), index=True)
     first_child = db.Column(db.String(200), index=True)
-    __parents = db.Column(db.UnicodeText())
-    __children = db.Column(db.UnicodeText())
-    __next_node = db.Column(db.Integer)
-    __previous_node = db.Column(db.Integer)
-
-    def __repr__(self):
-        return {
-            "_id": self._id,
-            "_version": self._version,
-            "first_child": self.first_child,
-            "_hash": self._hash,
-            "_timestamp": self._timestamp,
-        }
+    layer_parents = db.Column(db.UnicodeText())
+    layer_children = db.Column(db.UnicodeText())
+    layer_next_node = db.Column(db.Integer)
+    layer_previous_node = db.Column(db.Integer)
 
 
 class NodeRevision(db.Model):
@@ -72,29 +63,20 @@ class NodeRevision(db.Model):
 
     # content_type = db.Column(db.Integer) # After we build the type system
     user_id = db.Column(db.Integer, db.ForeignKey("user._id"))
-    tags = db.Column(db.UnicodeText(), index=True)
+    meta = db.Column(db.UnicodeText(), index=True)
     first_child = db.Column(db.String(200), index=True)
     _version = db.Column(db.Integer, primary_key=True, index=True)  # Revision override
-    __parents = db.Column(db.UnicodeText())
-    __children = db.Column(db.UnicodeText())
-    __next_node = db.Column(db.Integer)
-    __previous_node = db.Column(db.Integer)
-
-    def __repr__(self):
-        return {
-            "_id": self.id,
-            "_version": self.version,
-            "first_child": self.first_child,
-            "_hash": self.hash,
-            "_timestamp": self.timestamp,
-        }
+    layer_parents = db.Column(db.UnicodeText())
+    layer_children = db.Column(db.UnicodeText())
+    layer_next_node = db.Column(db.Integer)
+    layer_previous_node = db.Column(db.Integer)
 
 
 class ContentType(db.Model):
     """This table holds metadata necessary to save and render content types
     """
 
-    database_table = db.Column(db.String(200), index=True)
+    name = db.Column(db.String(200), index=True)
     content_class = db.Column(db.String(200))
     editable_fields = db.Column(db.UnicodeText())
     viewable_fields = db.Column(db.UnicodeText())
@@ -106,7 +88,7 @@ class ContentTypeRevision(db.Model):
     """
 
     _version = db.Column(db.Integer, primary_key=True, index=True)  # Revision override
-    database_table = db.Column(db.String(200), index=True)
+    name = db.Column(db.String(200), index=True)
     content_class = db.Column(db.String(200))
     editable_fields = db.Column(db.UnicodeText())
     viewable_fields = db.Column(db.UnicodeText())
@@ -124,8 +106,8 @@ class User(UserMixin, db.Model):
     last_login = db.Column(db.DateTime, default=datetime.utcnow)
     roles = db.Column(db.UnicodeText())
 
-    def __repr__(self):
-        return {"_id": self._id, "_node_id": self.node_id, "username": self.username}
+    # def __repr__(self):
+    #     return {"_id": self._id, "_node_id": self.node_id, "username": self.username}
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -171,17 +153,6 @@ class Article(db.Model):
     title = db.Column(db.String(200))
     body = db.Column(db.UnicodeText())
 
-    def __repr__(self):
-        return json.dumps(
-            {
-                "_id": self._id,
-                "_node_id": self._node_id,
-                "_hash": self._hash,
-                "title": self.title,
-                "body": self.body,
-            }
-        )
-
 
 class ArticleRevision(db.Model):
     """The article revisions table
@@ -192,14 +163,3 @@ class ArticleRevision(db.Model):
     _version = db.Column(db.Integer, primary_key=True, index=True)  # Revision override
     title = db.Column(db.String(200))
     body = db.Column(db.UnicodeText())
-
-    def __repr__(self):
-        return json.dumps(
-            {
-                "_id": self._id,
-                "_node_id": self._node_id,
-                "_hash": self._hash,
-                "title": self.title,
-                "body": self.body,
-            }
-        )

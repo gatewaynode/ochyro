@@ -12,6 +12,7 @@ from core.models import (
     ArticleRevision,
 )
 from datetime import datetime
+from dataclasses import dataclass
 import hashlib
 import traceback
 import logging
@@ -89,14 +90,14 @@ def _associate_node(node, content, content_type):
         {
             "content_id": content._id,
             "content_revision": content._version,
-            "content_type": content_type,
+            "content_type_id": content_type[0]._id,
         }
     )
     node._hash = _hash_table(node)
     db.session.add(node)
     db.session.commit()
 
-    return (node, content)
+    return [node, content]
 
 
 def load_node(node_id, node_version=None):
@@ -121,6 +122,8 @@ def load_node(node_id, node_version=None):
 
 
 def load_content(node):
+    """ Given an node load it's first child content row
+    """
     first_child = json.loads(node.first_child)
 
     try:
@@ -133,12 +136,21 @@ def load_content(node):
             f"Security Warning: load_content({node_id}) failed to convert input to a integer!"
         )
 
-    # @TODO use the content type to get the dynamic class loading strings
-    # content_type = ContentType.query.get(first_child["content_type"])
-    content_mod = __import__("core.models", fromlist=["Article"])
-    ContentClass = getattr(content_mod, "Article")
-    content = ContentClass.query.get(safe_content_id)
-    return (node, content)
+    content_type = ContentType.query.filter_by(
+        _node_id=first_child["content_type_id"]
+    ).first()
+    if not content_type:
+        print("First Child")
+        pprint(first_child)
+        print("Content Type")
+        pprint(content_type)
+        return False
+    # Dynamically load the database model for the content type
+    content_module = __import__("core.models", fromlist=[content_type.content_class])
+    ContentClass = getattr(content_module, content_type.content_class)
+    content = db.session.query(ContentClass).get(first_child["content_id"])
+
+    return [node, content]
 
 
 def save_revision(content, content_revision):
@@ -149,16 +161,39 @@ def save_revision(content, content_revision):
     return content_revision
 
 
-# def register_user(form):
-#     user = User(
-#         username=html.escape(form.username.data, quote=True),
-#         email=html.escape(form.email.data, quote=True),
-#     )
-#     user.set_password(form.password.data)
-#     db.session.add(user)
-#     db.session.commit()
-#     flash("Congradulations, you are now a registered user!")
-#     return f"Congradulations{html.escape(form.username.data, quote=True)}, you are now a registered user!"
+def init_content_type(build_content_type):
+    node = _register_node()
+
+    content_type = ContentType(
+        _version=1,
+        _node_id=node._id,
+        _hash="",
+        _lock="",
+        name=build_content_type["content_type_name"],
+        content_class=build_content_type["content_class"],
+        editable_fields="",
+        viewable_fields="",
+    )
+    db.session.add(content_type)
+    db.session.commit()
+    content_type._hash = _hash_table(content_type)
+    db.session.add(content_type)
+    db.session.commit()
+
+    node.first_child = json.dumps(
+        {
+            "content_id": content_type._id,
+            "content_revision": content_type._version,
+            "content_type_id": node._id,
+            "content_type_name": build_content_type["content_type_name"],
+            "content_type_class": build_content_type["content_class"],
+        }
+    )
+    node._hash = _hash_table(node)
+    db.session.add(node)
+    db.session.commit()
+
+    return [node, content_type]
 
 
 def save_user(form):
@@ -166,7 +201,20 @@ def save_user(form):
 
     Parameters: form, object.  A WTForms like object.
     """
-    pprint(vars(form))
+    # pprint(vars(form))
+    # Test content exists first
+    content_type_content = ContentType.query.filter_by(name="User Content Type").first()
+
+    if not content_type_content:
+        build_user_content_type = {
+            "content_type_name": "User Content Type",
+            "content_class": "User",
+        }
+        content_type = init_content_type(build_user_content_type)
+    else:
+        # Kind of redundant to load this again, but it sticks to the content model
+        content_type = load_content(load_node(content_type_content._node_id))
+
     if form.node_id.data and form.node_version.data:  # Assume update
         node = load_node(form._node_id.data)
         if _check_node_lock(node._lock):
@@ -192,7 +240,7 @@ def save_user(form):
         db.session.add(updated_user)
         db.session.commit()
 
-        return (node, updated_user)
+        return [node, updated_user]
 
     else:  # Assume we are creating a new user
         node = _register_node()
@@ -211,7 +259,7 @@ def save_user(form):
         db.session.add(user)
         db.session.commit()
 
-        data_pair = _associate_node(node, user, 1)
+        data_pair = _associate_node(node, user, content_type)
 
         return data_pair
 
@@ -222,6 +270,22 @@ def save_article(form):
     Basic workflow:
     node create --> article create --> node assoicate to article --> node hash
     """
+    # pprint(vars(form))
+    # Test content exists first
+    content_type_content = ContentType.query.filter_by(
+        name="Article Content Type"
+    ).first()
+    pprint(content_type_content)
+    if not content_type_content:
+        build_user_content_type = {
+            "content_type_name": "Article Content Type",
+            "content_class": "Article",
+        }
+        content_type = init_content_type(build_user_content_type)
+    else:
+        # Kind of redundant to load this again, but it sticks to the content model
+        content_type = load_content(load_node(content_type_content._node_id))
+
     if form.node_id.data and form.node_version.data:  # Assume update
         node = load_node(form.node_id.data)
         if _check_node_lock(node._lock):
@@ -245,7 +309,7 @@ def save_article(form):
         db.session.add(updated_article)
         db.session.commit()
 
-        return (node, updated_article)
+        return [node, updated_article]
 
     else:  # Assume new article
         node = _register_node()
@@ -264,6 +328,6 @@ def save_article(form):
         db.session.add(article)
         db.session.commit()
 
-        data_pair = _associate_node(node, article, 2)
+        data_pair = _associate_node(node, article, content_type)
 
         return data_pair

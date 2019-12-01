@@ -3,6 +3,8 @@ import logging
 import traceback
 from flask import Flask
 from config import Config
+from sqlalchemy import event, DDL
+from sqlalchemy.event import listen
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
@@ -19,8 +21,11 @@ login.login_view = "login"
 if not app.debug:
     if not os.path.exists("logs"):
         os.mkdir("logs")
-    file_handler = RotatingFileHandler("logs/ochyro.log", maxBytes=10240, backupCount=10)
-    file_handler.setFormatter(logging.Formatter(
+    file_handler = RotatingFileHandler(
+        "logs/ochyro.log", maxBytes=10240, backupCount=10
+    )
+    file_handler.setFormatter(
+        logging.Formatter(
             "%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d"
         )
     )

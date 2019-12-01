@@ -6,7 +6,7 @@ from flask_login import (
     login_required,
     login_manager,
 )
-from core import app, db
+from core import app, db, login
 from core.forms import LoginForm, RegistrationForm, EditUserForm, EditArticleForm
 from core.controllers import save_user, save_article, load_node, load_content
 from core.views import view_front_page
@@ -14,6 +14,7 @@ from core.models import User
 from werkzeug.urls import url_parse
 from datetime import datetime
 import html
+import json
 from pprint import pprint
 
 
@@ -22,6 +23,11 @@ from pprint import pprint
 # @login_manager.user_loader
 # def load_user(user_id):
 #     return User.query.filter_by(_id=int(user_id)).first()
+
+
+@login.user_loader
+def load_user(id):
+    return User.query.get(int(id))
 
 
 @app.route("/")
@@ -134,7 +140,11 @@ def view_article(_id):
 @app.route("/debug", methods=["GET"])
 @login_required
 def debug_something():
-    node = load_node(2)
+    node = load_node(4)
+    print("node")
+    pprint(vars(node))
     content = load_content(node)
+    print("content")
     pprint(content)
-    return node
+    pprint(content[1].__dict__)
+    return f"Debugging is fun: "

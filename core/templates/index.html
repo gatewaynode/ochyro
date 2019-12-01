@@ -2,5 +2,12 @@
 
 {% block content %}
     <div class="title">Articles</div>
-
+    {% for article in articles %}
+      <div class="article-title">
+        {{ article["content"]["title"] }}
+      </div>
+      <div class="article-body">
+        {{ article["content"]["body"] }}
+      </div>  
+    {% endfor %}
 {% endblock %}
