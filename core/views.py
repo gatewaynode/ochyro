@@ -4,6 +4,20 @@ from core.controllers import load_node, load_content
 from pprint import pprint
 
 
+def dictify_content(contents):
+    content_dict = {}
+    for content in contents:
+        pprint(content)
+        content_dict[content.__tablename__] = {}
+        for attr, value in content.__dict__.items():
+            if not attr == "_sa_instance_state":
+                if attr == "timestamp" or attr == "_timestamp":
+                    content_dict[content.__tablename__][attr] = str(value)
+                else:
+                    content_dict[content.__tablename__][attr] = value
+    return content_dict
+
+
 # This is probably the wrong way to do it, should stay in the content API
 def view_front_page():
     raw_content = Article.query.all()
@@ -44,3 +58,15 @@ def view_article_node(_id):
     node = load_node(article_content._node_id)
 
     return (node, article_content)
+
+
+def view_all():
+    all_content = []
+    nodes = Node.query.all()
+    pprint(nodes)
+    for node in nodes:
+        all_content.append(dictify_content(load_content(node)))
+
+    pprint(all_content)
+
+    return all_content

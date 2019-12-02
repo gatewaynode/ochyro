@@ -9,7 +9,7 @@ from flask_login import (
 from core import app, db, login
 from core.forms import LoginForm, RegistrationForm, EditUserForm, EditArticleForm
 from core.controllers import save_user, save_article, load_node, load_content
-from core.views import view_front_page
+from core.views import view_front_page, dictify_content, view_all
 from core.models import User
 from werkzeug.urls import url_parse
 from datetime import datetime
@@ -140,11 +140,7 @@ def view_article(_id):
 @app.route("/debug", methods=["GET"])
 @login_required
 def debug_something():
-    node = load_node(4)
-    print("node")
-    pprint(vars(node))
-    content = load_content(node)
-    print("content")
-    pprint(content)
-    pprint(content[1].__dict__)
-    return f"Debugging is fun: "
+    contents = view_all()
+    for content in contents:
+        pass
+    return "Debugging"

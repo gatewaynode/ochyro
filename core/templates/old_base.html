@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		{% if title %}
+		<title>{{ title }} - gatewaynode.com</title>
+		{% else %}
+		<title>-GateWayNode-</title>
+		{% endif %}
+		<meta name="description" content="Portal for gatewaynode.">
+		<meta name="author" content="gatewaynode">
+		<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/base.css') }}">
+		<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/terminal.css') }}">
+		<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/responsive.css') }}">
+		<!-- Mobile -->
+		<meta name="viewport" content="width=device-width">
+	</head>
+	<body class="body-class-base">
+    <div class="container">
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <div class="row col flash-messages content">
+            <ul class="messages-box">
+                {% for message in messages %}
+                <li class="message-item">{{ message }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+        {% endwith %}
+        <div class="col nav-bar content">
+            <a class="nav-item nav-home" href={{ url_for("index") }}>GatewayNode</a> |
+            {% if current_user.is_anonymous %}
+            <a class="nav-item nav-login" href={{ url_for("login") }}>Login</a>
+            {% else %}
+            <a class="nav-item nav-profile" href={{ url_for("user", username=current_user.username) }}>Profile</a> |
+            <a class="nav-item nav-profile" href={{ url_for("edit_article")}}>Edit Article</a> |
+            <a class="nav-item nav-profile" href="/debug">Debug</a> |
+            <a class="nav-item nav-logout" href={{ url_for("logout")  }}>Logout</a>
+            {% endif %}
+        </div>
+        <div class="col content"
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+	</body>
+</html>

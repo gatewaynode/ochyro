@@ -1,19 +1,35 @@
 /* Base Styles */
 
-.body-class-base{
+body{
   background-color: black;
   background-image: url("/static/images/green-binary.png");
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
-  color: green;
+  color: #12b912;
 }
+navbar,
 .title{
   font-size: 1.5em;
   font-weight: bold;
   padding: 10px;
-  background-color: #000000;
+  color: #12b912;
+  background-color: rgba(0, 0, 0, 0.7);
   width: max-content;
+}
+.body{
+  color: #12b912;
+  background-color: rgba(0, 0, 0, 0.7);
+}
+
+.article-title{
+  color: #12b912;
+  background-color: rgba(0, 0, 0, 0.7);
+}
+
+.article-body{
+  color: #12b912;
+  background-color: rgba(0, 0, 0, 0.7);
 }
 
 /*   left-margin: 100px; */
@@ -88,7 +104,7 @@ body label{
   color: green;
 }
 table{
-  background-color: #000000;
+  background-color: rgba(0, 0, 0, 0.7);
 }
 
 /* Results Table Styles */

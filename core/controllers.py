@@ -32,7 +32,7 @@ def _hash_table(db_object):
     for attr, value in vars(db_object).items():  # Maybe change this to use __dict__ ?
         values_list = {}
         if not attr == "_sa_instance_state":
-            if attr == "timestamp":
+            if attr == "timestamp" or attr == "_timestamp":
                 values_list[attr] = str(value)
             else:
                 values_list[attr] = value
@@ -140,10 +140,6 @@ def load_content(node):
         _node_id=first_child["content_type_id"]
     ).first()
     if not content_type:
-        print("First Child")
-        pprint(first_child)
-        print("Content Type")
-        pprint(content_type)
         return False
     # Dynamically load the database model for the content type
     content_module = __import__("core.models", fromlist=[content_type.content_class])
@@ -201,7 +197,6 @@ def save_user(form):
 
     Parameters: form, object.  A WTForms like object.
     """
-    # pprint(vars(form))
     # Test content exists first
     content_type_content = ContentType.query.filter_by(name="User Content Type").first()
 
@@ -270,12 +265,10 @@ def save_article(form):
     Basic workflow:
     node create --> article create --> node assoicate to article --> node hash
     """
-    # pprint(vars(form))
     # Test content exists first
     content_type_content = ContentType.query.filter_by(
         name="Article Content Type"
     ).first()
-    pprint(content_type_content)
     if not content_type_content:
         build_user_content_type = {
             "content_type_name": "Article Content Type",
