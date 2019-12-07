@@ -141,12 +141,20 @@ def load_content(node):
     ).first()
     if not content_type:
         return False
-    # Dynamically load the database model for the content type
-    content_module = __import__("core.models", fromlist=[content_type.content_class])
-    ContentClass = getattr(content_module, content_type.content_class)
-    content = db.session.query(ContentClass).get(first_child["content_id"])
 
-    return [node, content]
+    # Check here if the content type _node_id matches the given node._id this signifies
+    # a content type node and not a normal piece of content
+    if node._id == content_type._node_id:
+        return [node, content_type, content_type]
+    else:
+        # Dynamically load the database model for the content type
+        content_module = __import__(
+            "core.models", fromlist=[content_type.content_class]
+        )
+        ContentClass = getattr(content_module, content_type.content_class)
+        content = db.session.query(ContentClass).get(first_child["content_id"])
+
+        return [node, content, content_type]
 
 
 def save_revision(content, content_revision):

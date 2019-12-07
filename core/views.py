@@ -11,7 +11,7 @@ def dictify_content(contents):
         content_dict[content.__tablename__] = {}
         for attr, value in content.__dict__.items():
             if not attr == "_sa_instance_state":
-                if attr == "timestamp" or attr == "_timestamp":
+                if attr == "timestamp" or attr == "_timestamp" or attr == "last_login":
                     content_dict[content.__tablename__][attr] = str(value)
                 else:
                     content_dict[content.__tablename__][attr] = value
