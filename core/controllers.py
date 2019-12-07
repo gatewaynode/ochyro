@@ -18,6 +18,7 @@ import traceback
 import logging
 import json
 import html
+import copy
 from pprint import pprint
 
 
@@ -32,7 +33,7 @@ def _hash_table(db_object):
     for attr, value in vars(db_object).items():  # Maybe change this to use __dict__ ?
         values_list = {}
         if not attr == "_sa_instance_state":
-            if attr == "timestamp" or attr == "_timestamp":
+            if attr == "timestamp" or attr == "_timestamp" or attr == "last_login":
                 values_list[attr] = str(value)
             else:
                 values_list[attr] = value
@@ -145,7 +146,7 @@ def load_content(node):
     # Check here if the content type _node_id matches the given node._id this signifies
     # a content type node and not a normal piece of content
     if node._id == content_type._node_id:
-        return [node, content_type, content_type]
+        return [node, content_type, copy.deepcopy(content_type)]
     else:
         # Dynamically load the database model for the content type
         content_module = __import__(

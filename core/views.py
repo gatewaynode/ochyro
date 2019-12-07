@@ -1,18 +1,28 @@
 from core import app, db
 from core.models import Node, User, Article
 from core.controllers import load_node, load_content
+import json
 from pprint import pprint
 
 
 def dictify_content(contents):
     content_dict = {}
     for content in contents:
-        pprint(content)
         content_dict[content.__tablename__] = {}
         for attr, value in content.__dict__.items():
             if not attr == "_sa_instance_state":
+                # For storage objects like timestamps typecast to strings
                 if attr == "timestamp" or attr == "_timestamp" or attr == "last_login":
                     content_dict[content.__tablename__][attr] = str(value)
+                # For values that are JSON documents import as native types
+                elif (
+                    "str" in str(type(value))
+                    and value.startswith("[")
+                    or "str" in str(type(value))
+                    and value.startswith("{")
+                ):
+                    content_dict[content.__tablename__][attr] = json.loads(value)
+                # Everything else just assign and store
                 else:
                     content_dict[content.__tablename__][attr] = value
     return content_dict
