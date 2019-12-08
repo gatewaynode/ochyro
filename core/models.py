@@ -27,6 +27,10 @@ db.Model._hash = db.Column(db.String(140))
 db.Model._timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
 # Everything in the database is potentially editable and therefore must be lockable
 db.Model._lock = db.Column(db.UnicodeText())
+# Everything in the database has a state that we can check for
+db.Model._state = db.Column(db.String(100))
+# Everything in the database has authorization metadata called "perms" for permissions
+db.Model._perms = db.Column(db.String(100))
 
 
 class Node(db.Model):

@@ -6,13 +6,18 @@ from pprint import pprint
 
 
 def dictify_content(contents):
+    """Given a a list of db objects that make up a piece of content, convert to dict
+
+    Within our simple content model this is reasonable to do as we can catch the objects
+    that won't convert to json and deal with them.
+    """
     content_dict = {}
     for content in contents:
         content_dict[content.__tablename__] = {}
         for attr, value in content.__dict__.items():
             if not attr == "_sa_instance_state":
-                # For storage objects like timestamps typecast to strings
-                if attr == "timestamp" or attr == "_timestamp" or attr == "last_login":
+                # For timestamps get the string representation instead of the object
+                if "datetime" in str(type(value)):
                     content_dict[content.__tablename__][attr] = str(value)
                 # For values that are JSON documents import as native types
                 elif (
