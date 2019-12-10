@@ -8,6 +8,11 @@ body{
   background-size: cover;
   color: #12b912;
 }
+body .navbar-default{
+  background-color: #1F1F1F;
+  border-color: #12b912;
+  color: #12b912;
+}
 navbar,
 .title{
   font-size: 1.5em;
@@ -17,12 +22,27 @@ navbar,
   background-color: rgba(0, 0, 0, 0.7);
   width: max-content;
 }
+body .navbar-default .navbar-nav > li > a,
+body .navbar-default .navbar-brand{
+  color: #12b912;
+}
+body .navbar-default .navbar-toggle{
+  background-color: #000000;
+  border-color: #12b912;
+}
+body .navbar-default .navbar-toggle .icon-bar{
+  background-color: #12b912;
+}
 .body{
   color: #12b912;
   background-color: rgba(0, 0, 0, 0.7);
 }
 
 .article-title{
+  text-decoration: underline;
+  font-size: 1.5em;
+  margin-top: 1em;
+  margin-bottom: 0.5em;
   color: #12b912;
   background-color: rgba(0, 0, 0, 0.7);
 }

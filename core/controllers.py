@@ -30,13 +30,15 @@ def _hash_table(db_object):
     Parameters: node, an initialized db.model.Node
     Returns: a SHA256 hash digest
     """
+    values_list = {}
     for attr, value in vars(db_object).items():  # Maybe change this to use __dict__ ?
-        values_list = {}
         if not attr == "_sa_instance_state":
-            if attr == "timestamp" or attr == "_timestamp" or attr == "last_login":
+            if "datetime" in str(type(value)):
                 values_list[attr] = str(value)
             else:
                 values_list[attr] = value
+    # Look at this technique instead vvv
+    # db_dict = dict((value, attr(db_object, value)) for value in db_object.__table__.columns)
     # Convert to JSON string, encode, get the sha256 hash and convert to standard output
     return hashlib.sha256(json.dumps(values_list).encode()).hexdigest()
 
@@ -156,6 +158,34 @@ def load_content(node):
         content = db.session.query(ContentClass).get(first_child["content_id"])
 
         return [node, content, content_type]
+
+
+def dictify_content(contents):
+    """Given a a list of db objects that make up a piece of content, convert to dict
+
+    Within our simple content model this is reasonable to do as we can catch the objects
+    that won't convert to json and deal with them.
+    """
+    content_dict = {}
+    for content in contents:
+        content_dict[content.__tablename__] = {}
+        for attr, value in content.__dict__.items():
+            if not attr == "_sa_instance_state":
+                # For timestamps get the string representation instead of the object
+                if "datetime" in str(type(value)):
+                    content_dict[content.__tablename__][attr] = str(value)
+                # For values that are JSON documents import as native types
+                elif (
+                    "str" in str(type(value))
+                    and value.startswith("[")
+                    or "str" in str(type(value))
+                    and value.startswith("{")
+                ):
+                    content_dict[content.__tablename__][attr] = json.loads(value)
+                # Everything else just assign and store
+                else:
+                    content_dict[content.__tablename__][attr] = value
+    return content_dict
 
 
 def save_revision(content, content_revision):

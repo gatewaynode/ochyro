@@ -1,36 +1,8 @@
 from core import app, db
 from core.models import Node, User, Article
-from core.controllers import load_node, load_content
+from core.controllers import load_node, load_content, dictify_content
 import json
 from pprint import pprint
-
-
-def dictify_content(contents):
-    """Given a a list of db objects that make up a piece of content, convert to dict
-
-    Within our simple content model this is reasonable to do as we can catch the objects
-    that won't convert to json and deal with them.
-    """
-    content_dict = {}
-    for content in contents:
-        content_dict[content.__tablename__] = {}
-        for attr, value in content.__dict__.items():
-            if not attr == "_sa_instance_state":
-                # For timestamps get the string representation instead of the object
-                if "datetime" in str(type(value)):
-                    content_dict[content.__tablename__][attr] = str(value)
-                # For values that are JSON documents import as native types
-                elif (
-                    "str" in str(type(value))
-                    and value.startswith("[")
-                    or "str" in str(type(value))
-                    and value.startswith("{")
-                ):
-                    content_dict[content.__tablename__][attr] = json.loads(value)
-                # Everything else just assign and store
-                else:
-                    content_dict[content.__tablename__][attr] = value
-    return content_dict
 
 
 # This is probably the wrong way to do it, should stay in the content API
