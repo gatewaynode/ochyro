@@ -21,8 +21,12 @@ db.Model._id = db.Column(db.Integer, primary_key=True, index=True)
 db.Model._version = db.Column(db.Integer, index=True)
 # Everything not a node itself has a node and this is it's ID
 db.Model._node_id = db.Column(db.Integer, index=True)
-# Every database row has a hash of it's serialized database object before final save
+# Every database row has a hash of it's serialized database object values without the
+# hashes before final save for gross row value checks
 db.Model._hash = db.Column(db.String(140))
+# Every database row contains another hash like the base hash but which also includes
+# any previous _hash_chains to form a Merkel chain for transactional integrity checks
+db.Model._hash_chain = db.Column(db.String(140))
 # Everything in the database is timestamped
 db.Model._timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
 # Everything in the database is potentially editable and therefore must be lockable
