@@ -12,7 +12,6 @@ from core.models import (
     ArticleRevision,
 )
 from datetime import datetime
-from dataclasses import dataclass
 import hashlib
 import traceback
 import logging
@@ -22,25 +21,56 @@ import copy
 from pprint import pprint
 
 
-def _hash_table(db_object):
-    """Hash the node with existing hash to form a Merkel chain (new nodes use an empty value here).
-
-    Conditionals to handle the sqlalchemy object reference and timestamp being passed as an
-    unhashable object.
-    Parameters: node, an initialized db.model.Node
-    Returns: a SHA256 hash digest
+def _dictify_sqlalchemy_object(db_object):
+    """Enumerates an sql alchemy object values even after commit (which flushes the dict)
     """
-    values_list = {}
-    for attr, value in vars(db_object).items():  # Maybe change this to use __dict__ ?
-        if not attr == "_sa_instance_state":
+    db_dict = dict(
+        (value, getattr(db_object, value)) for value in db_object.__table__.columns
+    )
+    return db_dict
+
+
+def _chain_hash_table(db_object):
+    """Hash the object values with existing hashes to make a Merkel chain.
+
+    Conditionals to handle the sqlalchemy object reference and timestamp being passed as
+    an object.
+    Parameters: SQL Alchemy object
+    Returns: a SHA256 hash digest string
+    """
+    to_hash_dict = {}
+    db_dict = _dictify_sqlalchemy_object(db_object)
+    for key, value in db_dict.items():  # Maybe change this to use __dict__ ?
+        if not key == "_sa_instance_state":
             if "datetime" in str(type(value)):
-                values_list[attr] = str(value)
+                to_hash_dict[key] = str(value)
             else:
-                values_list[attr] = value
-    # Look at this technique instead vvv
-    # db_dict = dict((value, attr(db_object, value)) for value in db_object.__table__.columns)
-    # Convert to JSON string, encode, get the sha256 hash and convert to standard output
-    return hashlib.sha256(json.dumps(values_list).encode()).hexdigest()
+                to_hash_dict[key] = value
+    return hashlib.sha256(json.dumps(to_hash_dict).encode()).hexdigest()
+
+
+def _hash_table(db_object):
+    """Hashes a database object excluding hashes and chain hashes for raw value checks
+
+    Conditionals catch timestamp objects and hashes by key.
+    Parameters: SQL Alchemy object
+    Returns: a SHA256 hash digest string
+    """
+    to_hash_dict = {}
+    # db_dict = _dictify_sqlalchemy_object(db_object)
+    # for key, value in db_dict.items():
+    # db.session.refresh(db_object)
+    pprint(db_object.__dict__)
+    key_values_to_ignore = ["_sa_instance_state", "_hash", "_hash_chain"]
+    for key, value in db_object.__dict__.items():
+        if key not in key_values_to_ignore:
+            print(f"Passed key = {key}")
+            if "datetime" in str(type(value)):
+                to_hash_dict[key] = str(value)
+            else:
+                to_hash_dict[key] = value
+    pprint(to_hash_dict)
+    return hashlib.sha256(json.dumps(to_hash_dict).encode()).hexdigest()
 
 
 # Sample Node lock{
@@ -196,39 +226,39 @@ def save_revision(content, content_revision):
     return content_revision
 
 
-def init_content_type(build_content_type):
-    node = _register_node()
-
-    content_type = ContentType(
-        _version=1,
-        _node_id=node._id,
-        _hash="",
-        _lock="",
-        name=build_content_type["content_type_name"],
-        content_class=build_content_type["content_class"],
-        editable_fields="",
-        viewable_fields="",
-    )
-    db.session.add(content_type)
-    db.session.commit()
-    content_type._hash = _hash_table(content_type)
-    db.session.add(content_type)
-    db.session.commit()
-
-    node.first_child = json.dumps(
-        {
-            "content_id": content_type._id,
-            "content_revision": content_type._version,
-            "content_type_id": node._id,
-            "content_type_name": build_content_type["content_type_name"],
-            "content_type_class": build_content_type["content_class"],
-        }
-    )
-    node._hash = _hash_table(node)
-    db.session.add(node)
-    db.session.commit()
-
-    return [node, content_type]
+# def init_content_type(build_content_type):
+#     node = _register_node()
+#
+#     content_type = ContentType(
+#         _version=1,
+#         _node_id=node._id,
+#         _hash="",
+#         _lock="",
+#         name=build_content_type["content_type_name"],
+#         content_class=build_content_type["content_class"],
+#         editable_fields="",
+#         viewable_fields="",
+#     )
+#     db.session.add(content_type)
+#     db.session.commit()
+#     content_type._hash = _hash_table(content_type)
+#     db.session.add(content_type)
+#     db.session.commit()
+#
+#     node.first_child = json.dumps(
+#         {
+#             "content_id": content_type._id,
+#             "content_revision": content_type._version,
+#             "content_type_id": node._id,
+#             "content_type_name": build_content_type["content_type_name"],
+#             "content_type_class": build_content_type["content_class"],
+#         }
+#     )
+#     node._hash = _hash_table(node)
+#     db.session.add(node)
+#     db.session.commit()
+#
+#     return [node, content_type]
 
 
 def save_user(form):
@@ -240,11 +270,12 @@ def save_user(form):
     content_type_content = ContentType.query.filter_by(name="User Content Type").first()
 
     if not content_type_content:
-        build_user_content_type = {
-            "content_type_name": "User Content Type",
-            "content_class": "User",
-        }
-        content_type = init_content_type(build_user_content_type)
+        print("Houston we have a problem witht the user content type.")
+        # build_user_content_type = {
+        #     "content_type_name": "User Content Type",
+        #     "content_class": "User",
+        # }
+        # content_type = init_content_type(build_user_content_type)
     else:
         # Kind of redundant to load this again, but it sticks to the content model
         content_type = load_content(load_node(content_type_content._node_id))
@@ -309,10 +340,11 @@ def save_article(form):
         name="Article Content Type"
     ).first()
     if not content_type_content:
-        build_user_content_type = {
-            "content_type_name": "Article Content Type",
-            "content_class": "Article",
-        }
+        print("Houston we have a problem witht the user content type.")
+        # build_user_content_type = {
+        #     "content_type_name": "Article Content Type",
+        #     "content_class": "Article",
+        # }
         content_type = init_content_type(build_user_content_type)
     else:
         # Kind of redundant to load this again, but it sticks to the content model

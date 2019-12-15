@@ -18,6 +18,11 @@ import json
 from pprint import pprint
 
 
+@app.before_first_request
+def setup_cms():
+    import core.init_cms
+
+
 # Might need this down the road: https://flask-login.readthedocs.io/en/latest/
 # But for now adding the get_id() class to the User model seems to have worked
 # @login_manager.user_loader
