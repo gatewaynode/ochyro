@@ -30,46 +30,33 @@ def _dictify_sqlalchemy_object(db_object):
     return db_dict
 
 
-def _chain_hash_table(db_object):
-    """Hash the object values with existing hashes to make a Merkel chain.
+def _hash_table(db_object, chain=False):
+    """Hashes an SQL Alchemy database object
 
-    Conditionals to handle the sqlalchemy object reference and timestamp being passed as
-    an object.
-    Parameters: SQL Alchemy object
+    NOTE: Make sure the object __dict__ is loaded, so after a db.session.commit() or a
+    db.session.flush(), a db.session.refresh(db_object) is needed to populate the dict.
+
+    By default this just hashes values that are not hashes themselves and are not SQL
+    Alchemy instance state objects, by passing chain=True it will also hash existing
+    hashes building a Merkel chain (if previous _hash_chain exists) which ensures we can
+    check transactional integrity.
+
+    Parameters: "db_object", an SQL Alchemy db object, "chain" boolean
     Returns: a SHA256 hash digest string
     """
     to_hash_dict = {}
-    db_dict = _dictify_sqlalchemy_object(db_object)
-    for key, value in db_dict.items():  # Maybe change this to use __dict__ ?
-        if not key == "_sa_instance_state":
-            if "datetime" in str(type(value)):
-                to_hash_dict[key] = str(value)
-            else:
-                to_hash_dict[key] = value
-    return hashlib.sha256(json.dumps(to_hash_dict).encode()).hexdigest()
-
-
-def _hash_table(db_object):
-    """Hashes a database object excluding hashes and chain hashes for raw value checks
-
-    Conditionals catch timestamp objects and hashes by key.
-    Parameters: SQL Alchemy object
-    Returns: a SHA256 hash digest string
-    """
-    to_hash_dict = {}
-    # db_dict = _dictify_sqlalchemy_object(db_object)
-    # for key, value in db_dict.items():
-    # db.session.refresh(db_object)
-    pprint(db_object.__dict__)
-    key_values_to_ignore = ["_sa_instance_state", "_hash", "_hash_chain"]
+    if chain:
+        key_values_to_ignore = ["_sa_instance_state"]
+    else:
+        key_values_to_ignore = ["_sa_instance_state", "_hash", "_hash_chain"]
     for key, value in db_object.__dict__.items():
         if key not in key_values_to_ignore:
-            print(f"Passed key = {key}")
-            if "datetime" in str(type(value)):
+            if "datetime" in str(
+                type(value)
+            ):  # Convoluted but reliable way to spot datetime objects
                 to_hash_dict[key] = str(value)
             else:
                 to_hash_dict[key] = value
-    pprint(to_hash_dict)
     return hashlib.sha256(json.dumps(to_hash_dict).encode()).hexdigest()
 
 
@@ -119,6 +106,7 @@ def _register_node():
 def _associate_node(node, content, content_type):
     """Complete a node that was registered with a first_child association and hash
     """
+    db.session.refresh(node)
     node.first_child = json.dumps(
         {
             "content_id": content._id,
@@ -127,6 +115,7 @@ def _associate_node(node, content, content_type):
         }
     )
     node._hash = _hash_table(node)
+    node._hash_chain = _hash_table(node, chain=True)
     db.session.add(node)
     db.session.commit()
 
@@ -270,12 +259,8 @@ def save_user(form):
     content_type_content = ContentType.query.filter_by(name="User Content Type").first()
 
     if not content_type_content:
-        print("Houston we have a problem witht the user content type.")
-        # build_user_content_type = {
-        #     "content_type_name": "User Content Type",
-        #     "content_class": "User",
-        # }
-        # content_type = init_content_type(build_user_content_type)
+        print("Houston we have a problem with the user content type.")
+        exit(1)
     else:
         # Kind of redundant to load this again, but it sticks to the content model
         content_type = load_content(load_node(content_type_content._node_id))
@@ -295,17 +280,17 @@ def save_user(form):
             _id=user_revision._id,
             _version=new_version_number,
             _node_id=node._id,
-            _hash=user_revision._hash,
             _lock="",
             username=html.escape(form.username.data, quote=True),
             email=html.escape(form.email.data, quote=True),
         )
         updated_user.set_password(form.password.data)
-        updated_user.hash = _hash_table(updated_user)
+        updated_user._hash = _hash_table(updated_user)
+        updated_user._hash_chain = _hash_table(updated_user, chain=True)
         db.session.add(updated_user)
         db.session.commit()
 
-        return [node, updated_user]
+        return [node, updated_user, content_type]
 
     else:  # Assume we are creating a new user
         node = _register_node()
@@ -320,7 +305,9 @@ def save_user(form):
         user.set_password(form.password.data)
         db.session.add(user)
         db.session.commit()
+        db.session.refresh(user)
         user._hash = _hash_table(user)  # Now that we have the id we can hash
+        user._hash_chain = _hash_table(user, chain=True)
         db.session.add(user)
         db.session.commit()
 
@@ -340,12 +327,8 @@ def save_article(form):
         name="Article Content Type"
     ).first()
     if not content_type_content:
-        print("Houston we have a problem witht the user content type.")
-        # build_user_content_type = {
-        #     "content_type_name": "Article Content Type",
-        #     "content_class": "Article",
-        # }
-        content_type = init_content_type(build_user_content_type)
+        print("Houston we have a problem with the user content type.")
+        exit(1)
     else:
         # Kind of redundant to load this again, but it sticks to the content model
         content_type = load_content(load_node(content_type_content._node_id))
@@ -364,12 +347,12 @@ def save_article(form):
         updated_article = Article(
             _version=new_version_number,
             _node_id=node._id,
-            _hash=content_revision._hash,
             _lock="",
             title=form.title.data,  # @TODO add extra security measures
             body=form.body.data,  # @TODO add extra security measures
         )
         updated_article._hash = _hash_table(updated_article)
+        updated_article._hash_chain = _hash_table(updated_article, chain=True)
         db.session.add(updated_article)
         db.session.commit()
 
@@ -388,7 +371,9 @@ def save_article(form):
         # First save get's our article ID to include in the hash
         db.session.add(article)
         db.session.commit()
+        db.session.refresh(article)
         article._hash = _hash_table(article)  # Hash after getting id
+        article._hash_chain = _hash_table(article, chain=True)
         db.session.add(article)
         db.session.commit()
 
