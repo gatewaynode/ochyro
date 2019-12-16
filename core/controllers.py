@@ -21,6 +21,7 @@ import copy
 from pprint import pprint
 
 
+# @TODO Trash this in favor of db.session.refresh(obj)
 def _dictify_sqlalchemy_object(db_object):
     """Enumerates an sql alchemy object values even after commit (which flushes the dict)
     """
