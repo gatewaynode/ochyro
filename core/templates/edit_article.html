@@ -1,15 +1,28 @@
 {% extends "base.html" %}
 
 {% block content %}
+  {% if content %}
+  {# A bit strange but seems to be the most consistent way to get these set #}
+    {% set _ = form.node_id.process_data(content["node"]._id) %}
+    {% set _ = form.node_version.process_data(content["node"]._version) %}
+    {% set _ = form.node_hash.process_data(content["node"]._hash) %}
+    {% set _ = form.content_hash.process_data(content["content"]._hash) %}
+    {% set _ = form.content_type.process_data(content["type"].content_class) %}
+  {% endif %}
 	<div class="title">
-		Edit Article
+		<h1>{{ title }}</h1>
 	</div>
 	<form action="" method="post" class="edit-article-form">
-		{{ form.hidden_tag() }}
+    {{ form.hidden_tag() }}
 		<div class=form-fields">
 			<div class="article title-edit">
+        {% if content %}
+          {% set default_title = content["content"].title %}
+        {% else %}
+          {% set default_title = "" %}
+        {% endif %}
 				{{ form.title.label }}
-				{{ form.title(size=32) }}
+				{{ form.title(value=default_title, size=32) }}
 				<div class="form-item-description">{{ form.title.description }}</div>
 				{% for error in form.title.errors %}
 				<span style="form-error">[{{ error }}]</span>
@@ -17,27 +30,22 @@
 			</div>
 			<div class="article body-edit">
 				{{ form.body.label }}
+        {% if content %}
+          {% set default_body = content["content"].body %}
+        {% else %}
+          {% set default_body = "" %}
+        {% endif %}
+        {% set _ = form.body.process_data(default_body) %}
 				{{ form.body() }}
 				<div class="form-item-description">{{ form.body.description }}</div>
 				{% for error in form.body.errors %}
 				<span style="form-error">[{{ error }}]</span>
 				{% endfor %}
 			</div>
-			<div class="article tags-edit">
-                {{ form.tags.label }}
-                {{ form.tags() }}
-                <div class="form-item-description">{{ form.tags.description }}</div>
-                {% for error in form.tags.errors %}
-				<span style="form-error">[{{ error }}]</span>
-				{% endfor %}
-			</div>
 			<div class="submit profile-edit-submit">
 				{{ form.submit() }}
 			</div>
-			{% if node_id and node_version %}
-                {{ form.node_id }}
-                {{ form.node_version }}
-			{% endif %}
+
 		</div>
 	</form>
 {% endblock %}

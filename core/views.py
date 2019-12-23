@@ -41,19 +41,50 @@ def view_article_node(_id):
         logging.error(
             f"Security Warning: view_article({_id}) failed to convert input to a integer!"
         )
-    article_content = Article.query.get(safe_id).first_or_404()
-    node = load_node(article_content._node_id)
+    # article_content = Article.query.get(safe_id).first_or_404()
+    # node = load_node(article_content._node_id)
+    article_content = load_content(load_node(safe_id))
 
-    return (node, article_content)
+    return article_content
 
 
 def view_all():
     all_content = []
     nodes = Node.query.all()
-    pprint(nodes)
     for node in nodes:
         all_content.append(dictify_content(load_content(node)))
 
+    return all_content
+
+
+def view_content_control():
+    all_content = []
+    nodes = Node.query.all()
+    for node in nodes:
+        all_content.append(load_content(node))
+
+    print("All Content")
     pprint(all_content)
 
-    return all_content
+    table_content = []
+    for content in all_content:
+        if (
+            content["content"]._hash != content["type"]._hash
+            and content["type"].name == "Article Content Type"
+        ):
+            table_content.append(
+                {
+                    "title": content["content"].title,
+                    "type": content["type"].name,
+                    "body": content["content"].body,
+                    "view": f"<a href=\"{content['type'].view_url}/{content['node']._id}\">view</a>",
+                    "edit": f"<a href=\"{content['type'].edit_url}/{content['node']._id}\">edit</a>",
+                }
+            )
+        else:
+            # @debug
+            print("Hash match implies content type.")
+    print("Table Content")
+    pprint(table_content)
+
+    return json.dumps(table_content)

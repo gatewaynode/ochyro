@@ -112,7 +112,7 @@ def _associate_node(node, content, content_type):
         {
             "content_id": content._id,
             "content_revision": content._version,
-            "content_type_id": content_type[0]._id,
+            "content_type_id": content_type["type"]._id,
         }
     )
     node._hash = _hash_table(node)
@@ -168,7 +168,11 @@ def load_content(node):
     # Check here if the content type _node_id matches the given node._id this signifies
     # a content type node and not a normal piece of content
     if node._id == content_type._node_id:
-        return [node, content_type, copy.deepcopy(content_type)]
+        return {
+            "node": node,
+            "content": content_type,
+            "type": copy.deepcopy(content_type),
+        }
     else:
         # Dynamically load the database model for the content type
         content_module = __import__(
@@ -177,7 +181,7 @@ def load_content(node):
         ContentClass = getattr(content_module, content_type.content_class)
         content = db.session.query(ContentClass).get(first_child["content_id"])
 
-        return [node, content, content_type]
+        return {"node": node, "content": content, "type": content_type}
 
 
 def dictify_content(contents):
@@ -208,47 +212,19 @@ def dictify_content(contents):
     return content_dict
 
 
-def save_revision(content, content_revision):
-    content_revision.__dict__ = content.__dict__.copy()
+def save_revision(content, content_revision_class):
+    content_revision = content_revision_class(
+        _id=content._id, _version=content._version
+    )
+    # Not the most graceful copy, but it seems to work
+    for key, value in content.__dict__.items():
+        if key != "_sa_instance_state":
+            content_revision.__dict__[key] = value
+
     db.session.add(content_revision)
     db.session.commit()
 
     return content_revision
-
-
-# def init_content_type(build_content_type):
-#     node = _register_node()
-#
-#     content_type = ContentType(
-#         _version=1,
-#         _node_id=node._id,
-#         _hash="",
-#         _lock="",
-#         name=build_content_type["content_type_name"],
-#         content_class=build_content_type["content_class"],
-#         editable_fields="",
-#         viewable_fields="",
-#     )
-#     db.session.add(content_type)
-#     db.session.commit()
-#     content_type._hash = _hash_table(content_type)
-#     db.session.add(content_type)
-#     db.session.commit()
-#
-#     node.first_child = json.dumps(
-#         {
-#             "content_id": content_type._id,
-#             "content_revision": content_type._version,
-#             "content_type_id": node._id,
-#             "content_type_name": build_content_type["content_type_name"],
-#             "content_type_class": build_content_type["content_class"],
-#         }
-#     )
-#     node._hash = _hash_table(node)
-#     db.session.add(node)
-#     db.session.commit()
-#
-#     return [node, content_type]
 
 
 def save_user(form):
@@ -335,29 +311,32 @@ def save_article(form):
         content_type = load_content(load_node(content_type_content._node_id))
 
     if form.node_id.data and form.node_version.data:  # Assume update
-        node = load_node(form.node_id.data)
-        if _check_node_lock(node._lock):
-            return form
 
-        existing_content = content_load(node.first_child, Article)
-        if _check_content_lock(existing_content._lock):
-            return form
+        existing_content = load_content(load_node(form.node_id.data))
+        # @TODO Check hashes here just cause we can
+        # @TODO Check locks here, if locked restore form and return user
 
-        content_revision = save_revision(existing_content, ArticleRevision)
-        new_version_number = content_revision.version + 1
-        updated_article = Article(
-            _version=new_version_number,
-            _node_id=node._id,
-            _lock="",
-            title=form.title.data,  # @TODO add extra security measures
-            body=form.body.data,  # @TODO add extra security measures
+        content_revision = save_revision(existing_content["content"], ArticleRevision)
+
+        new_version_number = existing_content["content"]._version + 1
+        existing_content["content"]._version = new_version_number
+        existing_content["content"]._node_id = existing_content["node"]._id
+        existing_content["content"]._lock = ""
+        existing_content[
+            "content"
+        ].title = form.title.data  # @TODO add extra security measures
+        existing_content[
+            "content"
+        ].body = form.body.data  # @TODO add extra security measures
+        existing_content["content"]._hash = _hash_table(existing_content["content"])
+        existing_content["content"]._hash_chain = _hash_table(
+            existing_content["content"], chain=True
         )
-        updated_article._hash = _hash_table(updated_article)
-        updated_article._hash_chain = _hash_table(updated_article, chain=True)
-        db.session.add(updated_article)
+        db.session.add(existing_content["content"])
         db.session.commit()
+        db.session.refresh(existing_content["content"])
 
-        return [node, updated_article]
+        return existing_content
 
     else:  # Assume new article
         node = _register_node()

@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block styles %}
+  {{ super() }}
+    <link href="https://unpkg.com/tabulator-tables@4.5.2/dist/css/tabulator.min.css" rel="stylesheet">
+{% endblock %}
+
+{% block head %}
+  {{ super() }}
+  <script type="text/javascript" src="https://unpkg.com/tabulator-tables@4.5.2/dist/js/tabulator.min.js"></script>
+{% endblock %}
+
+{% block content %}
+  <div class="title">Content</div>
+  <table id="content-control-table"></table>
+  <script>
+    var some_content = {{ content | safe }};
+
+    var table = new Tabulator("#content-control-table", {
+   	height:205, // set height of table (in CSS or here), this enables the Virtual DOM and improves render speed dramatically (can be any valid css height value)
+   	data:some_content, // Not sure why this doesn't work
+   	layout:"fitColumns",
+   	columns:[
+  	 	{title:"Title", field:"title"},
+      {title:"Type", field:"type"},
+  	 	{title:"Body", field:"body", maxwidth: 200},
+  	 	{title:"View", field:"view", formatter: "html"},
+  	 	{title:"Edit", field:"edit", formatter: "html"},
+   	],
+   	rowClick:function(e, row){
+   		console.log("Row " + row.getData().title);
+   	},
+  });
+  table._setData(some_content); // This works, setting in params doesn't
+  </script>
+{% endblock %}

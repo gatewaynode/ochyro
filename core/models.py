@@ -40,15 +40,15 @@ db.Model._perms = db.Column(db.String(100))
 class Node(db.Model):
     """The node model is the central organizing unit of the content model.
 
-    This is pervasive, to the extent that almost everything a user interacts with in the site
-    is content organized by at least one node, including the users themselves.  Nodes do not
-    hold content themselves, but they reference content and the relationships of the content.
-    Nodes may hold multiple content references, and content may even reference multiple other
-    nodes, given the base constraint that nodes have only one immutable "first_child" and
-    content rows can only ever have one immutable "node_id" (these constraints are within the
-    content system).
+    This is pervasive, to the extent that almost everything a user interacts with in the
+    site is content organized by at least one node, including the users themselves.
+    Nodes do not hold content themselves, but they reference content and the
+    relationships of the content.  Nodes may hold multiple content references, and
+    content may even reference multiple other nodes, given the base constraint that
+    nodes have only one immutable "first_child" and content rows can only ever have one
+    immutable "node_id" (these constraints are within the content system).
 
-    Potentially recursively nested fields are denoted with a leading double underscore.
+    Potentially recursively nested fields are denoted with a leading "layer" prefix.
     This is to attempt to make cleared when fields require recursion crontrols in views
     and controllers.
     """
@@ -88,6 +88,8 @@ class ContentType(db.Model):
     content_class = db.Column(db.String(200))
     editable_fields = db.Column(db.UnicodeText())
     viewable_fields = db.Column(db.UnicodeText())
+    edit_url = db.Column(db.String(100))
+    view_url = db.Column(db.String(100))
     # There will be more here for controllers and views but this gets us started
 
 
@@ -100,6 +102,8 @@ class ContentTypeRevision(db.Model):
     content_class = db.Column(db.String(200))
     editable_fields = db.Column(db.UnicodeText())
     viewable_fields = db.Column(db.UnicodeText())
+    edit_url = db.Column(db.String(100))
+    view_url = db.Column(db.String(100))
     # There will be more here for controllers and views but this gets us started
 
 

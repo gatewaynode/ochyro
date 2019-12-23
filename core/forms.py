@@ -114,5 +114,7 @@ class EditArticleForm(FlaskForm):
     )
     node_id = HiddenField()
     node_version = HiddenField()
+    node_hash = HiddenField()
+    content_hash = HiddenField()
     content_type = HiddenField()
     submit = SubmitField("Save")

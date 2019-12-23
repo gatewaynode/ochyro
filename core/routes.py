@@ -9,7 +9,9 @@ from flask_login import (
 from core import app, db, login
 from core.forms import LoginForm, RegistrationForm, EditUserForm, EditArticleForm
 from core.controllers import save_user, save_article, load_node, load_content
-from core.views import view_front_page, dictify_content, view_all
+
+# from core.views import view_front_page, dictify_content, view_all, view_content_control
+import core.views as views
 from core.models import User
 from werkzeug.urls import url_parse
 from datetime import datetime
@@ -38,7 +40,7 @@ def load_user(id):
 @app.route("/")
 @app.route("/index")
 def index():
-    articles = view_front_page()
+    articles = views.view_front_page()
     return render_template("index.html", title="", articles=articles)
 
 
@@ -107,39 +109,40 @@ def edit_profile():
     return render_template("edit_profile.html", title="Edit Profile", form=form)
 
 
-@app.route("/edit/article", methods=["GET", "POST"])
+@app.route("/edit/article/", methods=["GET", "POST"])
+@app.route("/edit/article/<node>", methods=["GET", "POST"])
 @login_required
-def edit_article():
+def edit_article(node=None, version=None):
     form = EditArticleForm()
     if form.validate_on_submit():
         save_article(form)
         return redirect(url_for("index"))
-    return render_template("edit_article.html", title="Create Article", form=form)
-
-
-@app.route("/edit/article/<node>/<version>", methods=["GET", "POST"])
-@login_required
-def edit_article_node(node=None, version=None):
-    form = EditArticleForm()
-    if form.validate_on_submit():
-        save_article(form)
-        return redirect(url_for("index"))
-    if node and version:
-
+    if node:  # Edit an existing article
+        content = load_content(load_node(node))
         return render_template(
-            "edit_article.html",
-            title="Edit Article",
-            form=form,
-            node_id=node,
-            node_version=version,
+            "edit_article.html", title="Edit Article", form=form, content=content,
+        )
+    else:
+        return render_template(
+            "edit_article.html", title="Create Article", form=form, content=None
         )
 
 
-@app.route("/article/<_id>")
+@app.route("/view/article/<_id>")
 @login_required
 def view_article(_id):
-    content = view_article_node(_id)
-    return render_template("article.html", title=content[1].title, content=content)
+    content = views.view_article_node(_id)
+    return render_template(
+        "article.html", title=content["content"].title, content=content
+    )
+
+
+@app.route("/content-control")
+@login_required
+def content_control():
+    content = views.view_content_control()
+    pprint(content)
+    return render_template("content-control.html", content=content)
 
 
 @app.route("/debug", methods=["GET"])
