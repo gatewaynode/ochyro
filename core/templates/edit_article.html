@@ -36,7 +36,7 @@
           {% set default_body = "" %}
         {% endif %}
         {% set _ = form.body.process_data(default_body) %}
-				{{ form.body() }}
+				{{ form.body(id="editor") }}
 				<div class="form-item-description">{{ form.body.description }}</div>
 				{% for error in form.body.errors %}
 				<span style="form-error">[{{ error }}]</span>
@@ -48,4 +48,8 @@
 
 		</div>
 	</form>
+  <script src="https://cdn.ckeditor.com/4.13.0/standard/ckeditor.js"></script>
+  <script>
+    CKEDITOR.replace( 'editor' );
+  </script>
 {% endblock %}

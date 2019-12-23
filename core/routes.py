@@ -119,6 +119,7 @@ def edit_article(node=None, version=None):
         return redirect(url_for("index"))
     if node:  # Edit an existing article
         content = load_content(load_node(node))
+        # @TODO check locks here
         return render_template(
             "edit_article.html", title="Edit Article", form=form, content=content,
         )
