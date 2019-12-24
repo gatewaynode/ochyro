@@ -12,6 +12,7 @@
 
 {% block content %}
   <div class="title">Content</div>
+  <a href={{ url_for("edit_article") }}><button>Create Article</button></a>
   <table id="content-control-table"></table>
   <script>
     var some_content = {{ content | safe }};
@@ -21,9 +22,9 @@
    	data:some_content, // Not sure why this doesn't work
    	layout:"fitColumns",
    	columns:[
-  	 	{title:"Title", field:"title"},
+  	 	{title:"Title", field:"title", formatter: "html"},
       {title:"Type", field:"type"},
-  	 	{title:"Body", field:"body", maxwidth: 200},
+  	 	{title:"Body", field:"body", formatter: "html", maxwidth: 200},
   	 	{title:"View", field:"view", formatter: "html"},
   	 	{title:"Edit", field:"edit", formatter: "html"},
    	],

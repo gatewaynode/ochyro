@@ -2,9 +2,9 @@
 
 {% block content %}
   <div class="title content-title node-id-{{ content['node']._id }}">
-    {{ content["content"].title }}
+    {{ content["content"].title | safe }}
   </div>
   <div class="body content-body">
-    {{ content["content"].body }}
+    {{ content["content"].body | safe }}
   </div>
 {% endblock %}

@@ -33,7 +33,8 @@
         {% if content %}
           {% set default_body = content["content"].body %}
         {% else %}
-          {% set default_body = "" %}
+          {# Stupid CKeditor hack, otherwise submit button silently fails #}
+          {% set default_body = "..." %}
         {% endif %}
         {% set _ = form.body.process_data(default_body) %}
 				{{ form.body(id="editor") }}
@@ -48,8 +49,13 @@
 
 		</div>
 	</form>
-  <script src="https://cdn.ckeditor.com/4.13.0/standard/ckeditor.js"></script>
+  <!-- @TODO Let's look at using version 5 instead of 4 -->
+  <script src="https://cdn.ckeditor.com/ckeditor5/16.0.0/classic/ckeditor.js"></script>
   <script>
-    CKEDITOR.replace( 'editor' );
+    ClassicEditor
+        .create( document.querySelector( '#editor' ) )
+        .catch( error => {
+            console.error( error );
+        } );
   </script>
 {% endblock %}

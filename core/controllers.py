@@ -18,6 +18,7 @@ import logging
 import json
 import html
 import copy
+from lxml.html.clean import clean_html
 from pprint import pprint
 
 
@@ -322,12 +323,8 @@ def save_article(form):
         existing_content["content"]._version = new_version_number
         existing_content["content"]._node_id = existing_content["node"]._id
         existing_content["content"]._lock = ""
-        existing_content[
-            "content"
-        ].title = form.title.data  # @TODO add extra security measures
-        existing_content[
-            "content"
-        ].body = form.body.data  # @TODO add extra security measures
+        existing_content["content"].title = clean_html(form.title.data)
+        existing_content["content"].body = clean_html(form.body.data)
         existing_content["content"]._hash = _hash_table(existing_content["content"])
         existing_content["content"]._hash_chain = _hash_table(
             existing_content["content"], chain=True

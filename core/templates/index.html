@@ -5,10 +5,10 @@
       <div class="title">Articles</div>
       {% for article in articles %}
         <div class="article-title">
-          {{ article["content"]["title"] }}
+          {{ article["content"]["title"] | safe }}
         </div>
         <div class="article-body">
-          {{ article["content"]["body"] }}
+          {{ article["content"]["body"] | safe }}
         </div>
       {% endfor %}
   </div>

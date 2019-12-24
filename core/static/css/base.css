@@ -139,3 +139,46 @@ table{
 .content{
   background-color: rgba(0, 0, 0, 0.7);
 }
+
+/* Buttons */
+body button{
+  background-color: #252d1c;
+  color: #9ae22b;
+  border-color: #535050;
+}
+
+body .tabulator .tabulator-header .tabulator-col {
+\	border-right: 1px solid green;
+	background: #484646;
+}
+
+body .tabulator .tabulator-header {
+	color: #9ae22b;
+  border-color: green;
+}
+
+body .tabulator .tabulator-header {
+	border-bottom: 1px solid green;
+	background-color: #e6e6e6;
+	color: #9ae22b;
+
+}
+
+body .tabulator {
+	border: 1px solid #1d4d27;
+	background-color: #1f1f1f;
+}
+
+body .tabulator-row .tabulator-cell {
+	border: 1px solid green;
+  /* background-color: #000000; */
+  color: #9ae22b;
+}
+
+body .tabulator-row.tabulator-row-even {
+	background-color: #181818;
+}
+
+body .tabulator-row.tabulator-row-odd {
+	background-color: #000000;
+}
