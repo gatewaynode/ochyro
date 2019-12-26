@@ -29,3 +29,7 @@ tests/__pycache__
 tests/__pycache__/*
 .pytest_cache
 .pytest_cache/*
+
+# Frozen Flask Static Files
+core/build
+core/build/*

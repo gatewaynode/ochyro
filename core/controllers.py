@@ -16,10 +16,20 @@ import hashlib
 import traceback
 import logging
 import json
+import base64
 import html
 import copy
 from lxml.html.clean import clean_html
 from pprint import pprint
+
+
+# Take input from a form and normalize the data structure as a dict
+def normalize_form_input(form):
+    normalized_data = {}
+    for key, value in vars(form).items():
+        if not key.startswith("_") and key != "meta":
+            normalized_data[key] = value.data
+    return normalized_data
 
 
 # @TODO Trash this in favor of db.session.refresh(obj)
@@ -228,8 +238,8 @@ def save_revision(content, content_revision_class):
     return content_revision
 
 
-def save_user(form):
-    """Update a user
+def save_user(data):
+    """Create or update a user
 
     Parameters: form, object.  A WTForms like object.
     """
@@ -243,32 +253,33 @@ def save_user(form):
         # Kind of redundant to load this again, but it sticks to the content model
         content_type = load_content(load_node(content_type_content._node_id))
 
-    if form.node_id.data and form.node_version.data:  # Assume update
-        node = load_node(form._node_id.data)
+    if data["node_id"] and data["node_version"]:  # Assume update
+        node = load_node(data["node_id"])
         if _check_node_lock(node._lock):
             return form
 
-        existing_user = content_load(node.first_child, User)
+        existing_user = content_load(node)
         if _check_content_lock(existing_user._lock):
             return form
 
         user_revision = save_revision(existing_user, UserRevision)
         new_version_number = user_revision.version + 1
-        updated_user = User(
-            _id=user_revision._id,
+        existing_user["content"] = User(
             _version=new_version_number,
-            _node_id=node._id,
             _lock="",
-            username=html.escape(form.username.data, quote=True),
-            email=html.escape(form.email.data, quote=True),
+            username=html.escape(data["username"], quote=True),
+            email=html.escape(data["email"], quote=True),
         )
-        updated_user.set_password(form.password.data)
-        updated_user._hash = _hash_table(updated_user)
-        updated_user._hash_chain = _hash_table(updated_user, chain=True)
-        db.session.add(updated_user)
+        if data["password"]:
+            existing_user["content"].set_password(data["password"])
+        existing_user["content"]._hash = _hash_table(existing_user["content"])
+        existing_user["content"]._hash_chain = _hash_table(
+            existing_user["content"], chain=True
+        )
+        db.session.add(existing_user["content"])
         db.session.commit()
 
-        return [node, updated_user, content_type]
+        return existing_user
 
     else:  # Assume we are creating a new user
         node = _register_node()
@@ -277,10 +288,10 @@ def save_user(form):
             _version=1,
             _lock="",
             _node_id=node._id,
-            username=html.escape(form.username.data, quote=True),
-            email=html.escape(form.email.data, quote=True),
+            username=html.escape(data["username"], quote=True),
+            email=html.escape(data["email"], quote=True),
         )
-        user.set_password(form.password.data)
+        user.set_password(data["password"])
         db.session.add(user)
         db.session.commit()
         db.session.refresh(user)
@@ -289,31 +300,32 @@ def save_user(form):
         db.session.add(user)
         db.session.commit()
 
-        data_pair = _associate_node(node, user, content_type)
+        content = _associate_node(node, user, content_type)
 
-        return data_pair
+        return content
 
 
-def save_article(form):
+# Switch to normalized data from form objects to better work with REST and GraphQL later
+def save_article(data):
     """Create or update an article content type
 
     Basic workflow:
     node create --> article create --> node assoicate to article --> node hash
     """
-    # Test content exists first
+    # Test content type exists first
     content_type_content = ContentType.query.filter_by(
         name="Article Content Type"
     ).first()
     if not content_type_content:
-        print("Houston we have a problem with the user content type.")
+        logging.error("Content Type 'Article' not found' crash and burn")
         exit(1)
     else:
         # Kind of redundant to load this again, but it sticks to the content model
         content_type = load_content(load_node(content_type_content._node_id))
 
-    if form.node_id.data and form.node_version.data:  # Assume update
+    if data["node_id"] and data["node_version"]:  # Assume update
 
-        existing_content = load_content(load_node(form.node_id.data))
+        existing_content = load_content(load_node(data["node_id"]))
         # @TODO Check hashes here just cause we can
         # @TODO Check locks here, if locked restore form and return user
 
@@ -323,8 +335,8 @@ def save_article(form):
         existing_content["content"]._version = new_version_number
         existing_content["content"]._node_id = existing_content["node"]._id
         existing_content["content"]._lock = ""
-        existing_content["content"].title = clean_html(form.title.data)
-        existing_content["content"].body = clean_html(form.body.data)
+        existing_content["content"].title = clean_html(data["title"])
+        existing_content["content"].body = clean_html(data["body"])
         existing_content["content"]._hash = _hash_table(existing_content["content"])
         existing_content["content"]._hash_chain = _hash_table(
             existing_content["content"], chain=True
@@ -342,8 +354,8 @@ def save_article(form):
             _version=1,
             _node_id=node._id,
             _lock="",
-            title=form.title.data,
-            body=form.body.data,
+            title=data["title"],
+            body=data["body"],
         )
         # First save get's our article ID to include in the hash
         db.session.add(article)
@@ -354,6 +366,6 @@ def save_article(form):
         db.session.add(article)
         db.session.commit()
 
-        data_pair = _associate_node(node, article, content_type)
+        content_obj = _associate_node(node, article, content_type)
 
-        return data_pair
+        return content_obj

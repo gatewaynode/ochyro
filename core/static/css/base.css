@@ -182,3 +182,15 @@ body .tabulator-row.tabulator-row-even {
 body .tabulator-row.tabulator-row-odd {
 	background-color: #000000;
 }
+
+body .tabulator .tabulator-header .tabulator-col.tabulator-sortable:hover {
+  background-color: #101010;
+}
+
+body .tabulator-row.tabulator-selectable:hover {
+  background-color: #101010;
+}
+
+.create-content-options button:hover{
+  background-color: #202020;
+}

@@ -77,16 +77,45 @@ class RegistrationForm(FlaskForm):
 class EditUserForm(FlaskForm):
     username = StringField(
         "Username",
+        description="Must be unique, underscores and alphanumerics only.",
         validators=[
             DataRequired(),
             Regexp(regex=r"^\w+$", message="Alphanumerics and underscores only."),
         ],
     )
-    two_factor_auth = BooleanField("Enable 2FA")
+    email = StringField(
+        "Email",
+        description="Valid email address required.",
+        validators=[
+            DataRequired(),
+            Email(),
+            Regexp(regex=r"^[\w.@+-\.]+$", message="Alphanumerics and '.@-' only."),
+        ],
+    )
+    password = PasswordField("Password", validators=[DataRequired()])
+    password2 = PasswordField(
+        "Repeat Password", validators=[DataRequired(), EqualTo("password")]
+    )
     node_id = HiddenField()
-    version_id = HiddenField()
-    content_type = HiddenField(value="User")
-    submit = SubmitField("Update Profile")
+    node_version = HiddenField()
+    node_hash = HiddenField()
+    content_hash = HiddenField()
+    content_type = HiddenField()
+    submit = SubmitField("Save user")
+
+    def validate_username(self, username):
+        user = User.query.filter_by(username=username.data).first()
+        if user is not None:
+            raise ValidationError(
+                f"Username {username.data} already in use.  Please use a different username."
+            )
+
+    def validate_email(self, email):
+        user = User.query.filter_by(email=email.data).first()
+        if user is not None:
+            raise ValidationError(
+                f"Email {email.data} already in use.  Please us a different email address."
+            )
 
 
 class EditArticleForm(FlaskForm):

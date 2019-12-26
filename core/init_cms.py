@@ -78,8 +78,10 @@ content_types = [
     },
 ]
 
+# Init step 1. Create the content types
 for content_type in content_types:
     result = models.ContentType.query.all()
     if len(result) < len(content_types):
         result = init_content_type(content_type)
-        pprint(result)
+
+# Init step 2. Create the root user

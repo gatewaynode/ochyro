@@ -8,7 +8,13 @@ from flask_login import (
 )
 from core import app, db, login
 from core.forms import LoginForm, RegistrationForm, EditUserForm, EditArticleForm
-from core.controllers import save_user, save_article, load_node, load_content
+from core.controllers import (
+    normalize_form_input,
+    save_user,
+    save_article,
+    load_node,
+    load_content,
+)
 
 # from core.views import view_front_page, dictify_content, view_all, view_content_control
 import core.views as views
@@ -96,26 +102,35 @@ def user(username):
 
 
 @app.route("/edit/user", methods=["GET", "POST"])
+@app.route("/edit/user/<node>", methods=["GET", "POST"])
 @login_required
-def edit_profile():
+def edit_user(node=None):
     form = EditUserForm()
     if form.validate_on_submit():
-        current_user.username = form.username.data
-        db.session.commit()
-        flash("Your changes have been saved.")
-        return redirect(url_for("edit_profile"))
-    elif request.method == "GET":
-        form.username.data = current_user.username
-    return render_template("edit_profile.html", title="Edit Profile", form=form)
+        save_user(normalize_form_input(form))
+        # current_user.username = form.username.data
+        # db.session.commit()
+        flash("User saved.")
+        return redirect(url_for("index"))
+    # elif request.method == "GET":
+    #     form.username.data = current_user.username
+    if node:
+        content = load_content(load_node(node))
+        # @TODO check locks here
+        return render_template(
+            "edit_user.html", title="Edit User", content=content, form=form
+        )
+    return render_template("edit_user.html", title="Create User", form=form)
 
 
 @app.route("/edit/article/", methods=["GET", "POST"])
 @app.route("/edit/article/<node>", methods=["GET", "POST"])
 @login_required
-def edit_article(node=None, version=None):
+def edit_article(node=None):
     form = EditArticleForm()
     if form.validate_on_submit():
-        save_article(form)
+        save_article(normalize_form_input(form))
+        flash("Article saved.")
         return redirect(url_for("index"))
     if node:  # Edit an existing article
         content = load_content(load_node(node))
