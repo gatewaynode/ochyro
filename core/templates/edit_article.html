@@ -34,7 +34,7 @@
           {% set default_body = content["content"].body %}
         {% else %}
           {# Stupid CKeditor hack, otherwise submit button silently fails #}
-          {% set default_body = "..." %}
+          {% set default_body = " " %}
         {% endif %}
         {% set _ = form.body.process_data(default_body) %}
 				{{ form.body(id="editor") }}
@@ -49,7 +49,7 @@
 
 		</div>
 	</form>
-  <!-- @TODO Let's look at using version 5 instead of 4 -->
+  <!-- CK Editor for text area WYSIWYG -->
   <script src="https://cdn.ckeditor.com/ckeditor5/16.0.0/classic/ckeditor.js"></script>
   <script>
     ClassicEditor

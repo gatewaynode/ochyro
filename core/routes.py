@@ -28,29 +28,33 @@ from pprint import pprint
 
 @app.before_first_request
 def setup_cms():
+    """Check that the root user is set, if not set it and the content types."""
     if not len(User.query.all()):  # The implied short circuit
         import core.init_cms
 
 
 @login.user_loader
 def load_user(id):
+    """Directly accesses the user table. WARNING: To be deprecated"""
     return User.query.get(int(id))
 
 
 @app.route("/")
 @app.route("/index")
 def index():
+    """Route for the base URL"""
     articles = views.view_front_page()
     return render_template("index.html", title="", articles=articles)
 
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
+    """Login form, also includes registration link if reg is open."""
     if current_user.is_authenticated:
         return redirect(url_for("index"))
     form = LoginForm()
 
-    # @TODO Refactor this
+    # @TODO Refactor this around content model
     if form.validate_on_submit():
         user = User.query.filter_by(username=form.username.data).first()
 
@@ -72,6 +76,7 @@ def login():
 
 @app.route("/logout")
 def logout():
+    """Just logout functionality"""
     logout_user()
     return redirect(url_for("index"))
 
@@ -80,11 +85,10 @@ def logout():
 @app.route("/edit/user/<node>", methods=["GET", "POST"])
 @login_required
 def edit_user(node=None):
+    """Edit or create a user as per the <node> overloading."""
     form = EditUserForm()
     if form.validate_on_submit():
         save_user(normalize_form_input(form))
-        # current_user.username = form.username.data
-        # db.session.commit()
         flash("User saved.")
         return redirect(url_for("index"))
     # elif request.method == "GET":
@@ -101,6 +105,7 @@ def edit_user(node=None):
 @app.route("/view/user/<node>", methods=["GET"])
 @login_required
 def view_user(node):
+    """View a user using generic view"""
     content = views.view_node(node)
     return render_template(
         "user.html", title=content["content"].username, content=content
@@ -111,6 +116,7 @@ def view_user(node):
 @app.route("/edit/article/<node>", methods=["GET", "POST"])
 @login_required
 def edit_article(node=None):
+    """Edit or create an article as per the <node> overloading."""
     form = EditArticleForm()
     if form.validate_on_submit():
         save_article(normalize_form_input(form))
@@ -130,6 +136,7 @@ def edit_article(node=None):
 
 @app.route("/view/article/<node>")
 def view_article(node):
+    """View a article using generic view"""
     content = views.view_node(node)
     return render_template(
         "article.html", title=content["content"].title, content=content
@@ -139,14 +146,15 @@ def view_article(node):
 @app.route("/content-control")
 @login_required
 def content_control():
+    """Primary content control mechanism, heavily relies on Tabulator."""
     content = views.view_content_control()
-    pprint(content)
     return render_template("content-control.html", content=content)
 
 
 @app.route("/debug", methods=["GET"])
 @login_required
 def debug_something():
+    """Currently a backdoor access method, can be anything needing a route and testing."""
     root_user = {
         "node_id": "",
         "node_version": "",

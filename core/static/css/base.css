@@ -194,3 +194,22 @@ body .tabulator-row.tabulator-selectable:hover {
 .create-content-options button:hover{
   background-color: #202020;
 }
+
+body .ck-editor__editable_inline {
+    min-height: 250px;
+}
+
+body .ck.ck-editor__top .ck-sticky-panel__content .ck-toolbar {
+  background-color: #4FB529;
+  border-color: #303030;
+}
+
+body .ck.ck-toolbar .ck.ck-toolbar__separator {
+  background-color: #000000;
+  color: #000000;
+}
+
+body .ck .ck-editor__main .ck-editor__editable_inline {
+  background-color: #000000;
+  border-color: #1A1A1A;
+}

@@ -23,8 +23,8 @@ from lxml.html.clean import clean_html
 from pprint import pprint
 
 
-# Take input from a form and normalize the data structure as a dict
 def normalize_form_input(form):
+    """Take a WTF Form object and normalize as a flat dict."""
     normalized_data = {}
     for key, value in vars(form).items():
         if not key.startswith("_") and key != "meta":
@@ -34,8 +34,6 @@ def normalize_form_input(form):
 
 # @TODO Trash this in favor of db.session.refresh(obj)
 def _dictify_sqlalchemy_object(db_object):
-    """Enumerates an sql alchemy object values even after commit (which flushes the dict)
-    """
     db_dict = dict(
         (value, getattr(db_object, value)) for value in db_object.__table__.columns
     )
@@ -43,9 +41,9 @@ def _dictify_sqlalchemy_object(db_object):
 
 
 def _hash_table(db_object, chain=False):
-    """Hashes an SQL Alchemy database object
+    """Hashes an SQL Alchemy database object"""
 
-    NOTE: Make sure the object __dict__ is loaded, so after a db.session.commit() or a
+    """NOTE: Make sure the object __dict__ is loaded, so after a db.session.commit() or a
     db.session.flush(), a db.session.refresh(db_object) is needed to populate the dict.
 
     By default this just hashes values that are not hashes themselves and are not SQL
@@ -78,6 +76,7 @@ def _hash_table(db_object, chain=False):
 #     "timestamp": str(datetime.utcnow()),
 # }
 def _check_node_lock(lock):
+    """Future state node locks to prevent changes during editing or long running query"""
     if lock:
         locked = json.loads(lock)
         if locked["user_id"] == current_user._id:
@@ -90,6 +89,7 @@ def _check_node_lock(lock):
 
 
 def _check_content_lock(lock):
+    """Future state content locks for rows to prevent changes during operations."""
     if lock:
         locked = json.loads(lock)
         if locked["user_id"] == current_user._id:
@@ -102,9 +102,10 @@ def _check_content_lock(lock):
 
 
 def _register_node():
-    """Create a node to register content to
+    """Create a simple node to register content to"""
 
-    This creates an empty node that a piece of content can be attached to.
+    """This creates an empty node that a piece of content can be attached to.  All rows
+    should have a corresponding node created first to be attached to.
     """
     if current_user.is_authenticated:
         node = Node(_version=1, _timestamp=datetime.utcnow(), user_id=current_user._id)
@@ -116,8 +117,10 @@ def _register_node():
 
 
 def _associate_node(node, content, content_type):
-    """Complete a node that was registered with a first_child association and hash
-    """
+    """Complete a node that was registered with a first_child association and hash"""
+
+    """After content row creation link the row back to it's first parent node.
+    Returns: full content dict."""
     db.session.refresh(node)
     node.first_child = json.dumps(
         {
@@ -131,13 +134,19 @@ def _associate_node(node, content, content_type):
     db.session.add(node)
     db.session.commit()
 
-    return [node, content]
+    return {"node": node, "content": content, "type": content_type}
 
 
-def load_node(node_id, node_version=None):
-    """ Load a node table by id
-    """
-    if node_id and not node_version:
+def load(node_id):
+    """A simple wrapper for loading the node and then the first child"""
+    node = load_node(node_id)
+    content = load_content(node)
+    return content
+
+
+def load_node(node_id):
+    """ Load a node table by id"""
+    if node_id:
         try:
             safe_node_id = int(node_id)  # Typecast as a security measure
         except Exception as e:
@@ -156,8 +165,10 @@ def load_node(node_id, node_version=None):
 
 
 def load_content(node):
-    """ Given an node load it's first child content row
-    """
+    """Given an node load it's first child content row and content type row"""
+
+    """Returns the complete content dict which consists of three objects: the node, the
+    content object, and the content type object."""
     first_child = json.loads(node.first_child)
 
     try:
@@ -196,9 +207,9 @@ def load_content(node):
 
 
 def dictify_content(contents):
-    """Given a a list of db objects that make up a piece of content, convert to dict
+    """Given a a list of db objects that make up a piece of content, convert to dict"""
 
-    Within our simple content model this is reasonable to do as we can catch the objects
+    """Within our simple content model this is reasonable to do as we can catch the objects
     that won't convert to json and deal with them.
     """
     content_dict = {}
@@ -224,6 +235,7 @@ def dictify_content(contents):
 
 
 def save_revision(content, content_revision_class):
+    """Always save a revision of any row that is updated or deleted."""
     content_revision = content_revision_class(
         _id=content._id, _version=content._version
     )
@@ -239,15 +251,16 @@ def save_revision(content, content_revision_class):
 
 
 def save_user(data):
-    """Create or update a user
+    """Create or update a user"""
 
-    Parameters: form, object.  A WTForms like object.
+    """Parameters: form, object.  A WTForms like object.
     """
     # Test content exists first
     content_type_content = ContentType.query.filter_by(name="User Content Type").first()
 
     if not content_type_content:
-        print("Houston we have a problem with the user content type.")
+        error_out = json.dumps(data)
+        logging.error(f"Content type not found or not loaded: data={error_out}")
         exit(1)
     else:
         # Kind of redundant to load this again, but it sticks to the content model
@@ -307,9 +320,9 @@ def save_user(data):
 
 # Switch to normalized data from form objects to better work with REST and GraphQL later
 def save_article(data):
-    """Create or update an article content type
+    """Create or update an article content type"""
 
-    Basic workflow:
+    """Basic workflow:
     node create --> article create --> node assoicate to article --> node hash
     """
     # Test content type exists first

@@ -1,6 +1,6 @@
 from core import app, db
 from core.models import Node, User, Article
-from core.controllers import load_node, load_content, dictify_content
+from core.controllers import load, load_node, load_content, dictify_content
 import json
 from pprint import pprint
 
@@ -33,7 +33,8 @@ def view_front_page():
     return articles
 
 
-def view_node(node):
+def view_node(node_id):
+    """A generic method of safely loading a single piece of content"""
     try:
         safe_id = int(node)
     except Exception as e:
@@ -41,22 +42,10 @@ def view_node(node):
         logging.error(
             f"Security Warning: view_article({node}) failed to convert input to a integer!"
         )
-    content = load_content(load_node(safe_id))
+    # content = load_content(load_node(safe_id))
+    content = load(node_id)
 
     return content
-
-
-def view_article_node(node):
-    try:
-        safe_id = int(node)
-    except Exception as e:
-        logging.error(traceback.format_exc())
-        logging.error(
-            f"Security Warning: view_article({node}) failed to convert input to a integer!"
-        )
-    article_content = load_content(load_node(safe_id))
-
-    return article_content
 
 
 def view_all():

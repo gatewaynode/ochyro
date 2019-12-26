@@ -11,9 +11,9 @@ def load_user(id):
     return User.query.get(int(id))  # Typecast for security
 
 
-"""Common fields for the content model denoted by leading underscore
+"""Common fields for the content model."""
 
-These are denoted with a leading single underscore to differentiate from reserved names
+"""These are denoted with a leading single underscore to differentiate from reserved names
 in SQL Alchemy and to distinguish from unique fields."""
 # ID is the pervasive primary key for all tables
 db.Model._id = db.Column(db.Integer, primary_key=True, index=True)
@@ -38,9 +38,9 @@ db.Model._perms = db.Column(db.String(100))
 
 
 class Node(db.Model):
-    """The node model is the central organizing unit of the content model.
+    """The node model is the central organizing unit of the content model."""
 
-    This is pervasive, to the extent that almost everything a user interacts with in the
+    """This is pervasive, to the extent that almost everything a user interacts with in the
     site is content organized by at least one node, including the users themselves.
     Nodes do not hold content themselves, but they reference content and the
     relationships of the content.  Nodes may hold multiple content references, and
@@ -63,9 +63,9 @@ class Node(db.Model):
 
 
 class NodeRevision(db.Model):
-    """All content tables have related revision tables, all changes are saved as revisions.
+    """All content tables have related revision tables, all changes are saved as revisions."""
 
-    Content updates first save the existing content to it's appropriate revision table
+    """Content updates first save the existing content to it's appropriate revision table
     including nodes themselves.  In this way the base tables are always the latest revision.
     """
 
@@ -81,8 +81,7 @@ class NodeRevision(db.Model):
 
 
 class ContentType(db.Model):
-    """This table holds metadata necessary to save and render content types
-    """
+    """This table holds metadata necessary to save and render content types"""
 
     name = db.Column(db.String(200), index=True)
     content_class = db.Column(db.String(200))
@@ -94,8 +93,7 @@ class ContentType(db.Model):
 
 
 class ContentTypeRevision(db.Model):
-    """This table holds metadata necessary to save and render content types
-    """
+    """This table holds metadata necessary to save and render content types"""
 
     _version = db.Column(db.Integer, primary_key=True, index=True)  # Revision override
     name = db.Column(db.String(200), index=True)
@@ -108,8 +106,7 @@ class ContentTypeRevision(db.Model):
 
 
 class User(UserMixin, db.Model):
-    """User content type
-    """
+    """User content type"""
 
     # content_type = db.Column(db.Integer) # After we build the type system
     username = db.Column(db.String(64), index=True, unique=True)
@@ -133,11 +130,9 @@ class User(UserMixin, db.Model):
 
 
 class UserRevision(UserMixin, db.Model):
-    """User revision table
-    """
+    """User revision table"""
 
     _version = db.Column(db.Integer, primary_key=True, index=True)  # Revision override
-    # content_type = db.Column(db.Integer) # After we build the type system
     username = db.Column(db.String(64), index=True, unique=True)
     email = db.Column(db.String(120), index=True, unique=True)
     password_hash = db.Column(db.String(128))
@@ -155,9 +150,9 @@ class UserRevision(UserMixin, db.Model):
 
 
 class Article(db.Model):
-    """The most basic content type, a title field and a body field.
+    """The most basic content type, a title field and a body field."""
 
-    The body field whitelists a small subset of HTML and filters out all other special
+    """The body field whitelists a small subset of HTML and filters out all other special
     characters not required to support the HTML.
     """
 
@@ -167,8 +162,7 @@ class Article(db.Model):
 
 
 class ArticleRevision(db.Model):
-    """The article revisions table
-    """
+    """The article revisions table"""
 
     # content_type = db.Column(db.Integer) # After we build the type system
     # Common fields

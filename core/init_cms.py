@@ -5,13 +5,12 @@ import os
 from pathlib import Path
 from pprint import pprint
 
-"""Create content types before anything else.
-
-Future state is likely to manage in database configuration as this point.
-"""
+"""Create content types and root user before anything else."""
 
 
 def init_content_type(build_content_type):
+    """Separate from the normal controllers for now"""
+
     content_type_content = models.ContentType.query.filter_by(
         name=build_content_type["content_type_name"]
     ).first()
@@ -86,7 +85,7 @@ if not models.ContentType.query.all():  # Sanity check
         result = init_content_type(content_type)
 
 # Init step 2. Create the root user
-if not len(models.User.query.all()):  # Sanity check
+if not models.User.query.all():  # Sanity check
     root_user = {
         "node_id": "",
         "node_version": "",
