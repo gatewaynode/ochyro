@@ -1,6 +1,8 @@
 from core import db
 from core import models, controllers
 import json
+import os
+from pathlib import Path
 from pprint import pprint
 
 """Create content types before anything else.
@@ -79,9 +81,20 @@ content_types = [
 ]
 
 # Init step 1. Create the content types
-for content_type in content_types:
-    result = models.ContentType.query.all()
-    if len(result) < len(content_types):
+if not models.ContentType.query.all():  # Sanity check
+    for content_type in content_types:
         result = init_content_type(content_type)
 
 # Init step 2. Create the root user
+if not len(models.User.query.all()):  # Sanity check
+    root_user = {
+        "node_id": "",
+        "node_version": "",
+        "username": "root",
+        "email": "none@none.com",
+        "password": "dog",
+    }
+    user_home = str(Path.home())
+    with open(os.path.join(user_home, ".ochyro_root.txt"), "w") as file:
+        file.write(json.dumps(root_user, indent=4))
+    created_root_user = controllers.save_user(root_user)

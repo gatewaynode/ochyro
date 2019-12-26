@@ -7,7 +7,7 @@ from flask_login import (
     login_manager,
 )
 from core import app, db, login
-from core.forms import LoginForm, RegistrationForm, EditUserForm, EditArticleForm
+from core.forms import LoginForm, EditUserForm, EditArticleForm
 from core.controllers import (
     normalize_form_input,
     save_user,
@@ -28,14 +28,8 @@ from pprint import pprint
 
 @app.before_first_request
 def setup_cms():
-    import core.init_cms
-
-
-# Might need this down the road: https://flask-login.readthedocs.io/en/latest/
-# But for now adding the get_id() class to the User model seems to have worked
-# @login_manager.user_loader
-# def load_user(user_id):
-#     return User.query.filter_by(_id=int(user_id)).first()
+    if not len(User.query.all()):  # The implied short circuit
+        import core.init_cms
 
 
 @login.user_loader
@@ -56,6 +50,7 @@ def login():
         return redirect(url_for("index"))
     form = LoginForm()
 
+    # @TODO Refactor this
     if form.validate_on_submit():
         user = User.query.filter_by(username=form.username.data).first()
 
@@ -81,26 +76,6 @@ def logout():
     return redirect(url_for("index"))
 
 
-@app.route("/register", methods=["GET", "POST"])
-def register():
-    if current_user.is_authenticated:
-        return redirect(url_for("index"))
-    form = RegistrationForm()
-    node = type("node", (object,), {})()
-    if form.validate_on_submit():
-        result = save_user(form)
-        return redirect(url_for("login"))
-    return render_template("register.html", title="register", form=form, node=node)
-
-
-@app.route("/user/<username>")
-@login_required
-def user(username):
-    user = User.query.filter_by(username=username).first_or_404()
-    data = "some garbage data"
-    return render_template("user.html", user=user, data=html.escape(data, quote=True))
-
-
 @app.route("/edit/user", methods=["GET", "POST"])
 @app.route("/edit/user/<node>", methods=["GET", "POST"])
 @login_required
@@ -121,6 +96,15 @@ def edit_user(node=None):
             "edit_user.html", title="Edit User", content=content, form=form
         )
     return render_template("edit_user.html", title="Create User", form=form)
+
+
+@app.route("/view/user/<node>", methods=["GET"])
+@login_required
+def view_user(node):
+    content = views.view_node(node)
+    return render_template(
+        "user.html", title=content["content"].username, content=content
+    )
 
 
 @app.route("/edit/article/", methods=["GET", "POST"])
@@ -144,10 +128,9 @@ def edit_article(node=None):
         )
 
 
-@app.route("/view/article/<_id>")
-@login_required
-def view_article(_id):
-    content = views.view_article_node(_id)
+@app.route("/view/article/<node>")
+def view_article(node):
+    content = views.view_node(node)
     return render_template(
         "article.html", title=content["content"].title, content=content
     )
@@ -164,7 +147,12 @@ def content_control():
 @app.route("/debug", methods=["GET"])
 @login_required
 def debug_something():
-    contents = view_all()
-    for content in contents:
-        pass
-    return "Debugging"
+    root_user = {
+        "node_id": "",
+        "node_version": "",
+        "username": "root",
+        "email": "none@none.com",
+        "password": "dog",
+    }
+    created_root_user = controllers.save_user(root_user)
+    return json.dumps(vars(created_root_user["content"]), indent=4)

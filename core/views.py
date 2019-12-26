@@ -33,16 +33,27 @@ def view_front_page():
     return articles
 
 
-def view_article_node(_id):
+def view_node(node):
     try:
-        safe_id = int(_id)
+        safe_id = int(node)
     except Exception as e:
         logging.error(traceback.format_exc())
         logging.error(
-            f"Security Warning: view_article({_id}) failed to convert input to a integer!"
+            f"Security Warning: view_article({node}) failed to convert input to a integer!"
         )
-    # article_content = Article.query.get(safe_id).first_or_404()
-    # node = load_node(article_content._node_id)
+    content = load_content(load_node(safe_id))
+
+    return content
+
+
+def view_article_node(node):
+    try:
+        safe_id = int(node)
+    except Exception as e:
+        logging.error(traceback.format_exc())
+        logging.error(
+            f"Security Warning: view_article({node}) failed to convert input to a integer!"
+        )
     article_content = load_content(load_node(safe_id))
 
     return article_content
@@ -63,9 +74,6 @@ def view_content_control():
     for node in nodes:
         all_content.append(load_content(node))
 
-    print("All Content")
-    pprint(all_content)
-
     table_content = []
     for content in all_content:
         if (
@@ -81,10 +89,5 @@ def view_content_control():
                     "edit": f"<a href=\"{content['type'].edit_url}/{content['node']._id}\">edit</a>",
                 }
             )
-        else:
-            # @debug
-            print("Hash match implies content type.")
-    print("Table Content")
-    pprint(table_content)
 
     return json.dumps(table_content)

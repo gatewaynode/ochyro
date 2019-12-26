@@ -3,23 +3,20 @@
 {% block content %}
 	<div class="user-profile">
 		<div class="profile-username">
-			User: {{ user.username }}
+			User: {{ content["content"].username }}
 		</div>
 		<div class="profile-email">
-			Email: {{ user.email }}
+			Email: {{ content["content"].email }}
 		</div>
 		<div class="profile-last-access">
-			Last Accessed: {{ user.last_login }}
+			Last Accessed: {{ content["content"].last_login }}
 		</div>
 		<div class="profile-roles">
-			User Roles: {{ user.roles }}
+			User Roles: {{ content["content"].roles }}
 		</div>
-		<div class="profile-content">
-			{{ data }}
-		</div>
-		{% if user == current_user %}
+		{% if content["content"] == current_user %}
 		<div class="profile-edit-link">
-			<a href={{ url_for("edit_profile") }}>Edit your profile</a>
+			<a href={{ url_for("edit_user") }}/{{ content["node"]._id }}>Edit your profile</a>
 		</div>
 		{% endif %}
 	</div>

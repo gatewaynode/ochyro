@@ -34,46 +34,6 @@ class LoginForm(FlaskForm):
     submit = SubmitField("Sign In")
 
 
-class RegistrationForm(FlaskForm):
-    username = StringField(
-        "Username",
-        validators=[
-            DataRequired(),
-            Regexp(regex=r"^\w+$", message="Alphanumerics and underscores only."),
-        ],
-    )
-    email = StringField(
-        "Email",
-        validators=[
-            DataRequired(),
-            Email(),
-            Regexp(regex=r"^[\w.@+-\.]+$", message="Alphanumerics and '.@-' only."),
-        ],
-    )
-    password = PasswordField("Password", validators=[DataRequired()])
-    password2 = PasswordField(
-        "Repeat Password", validators=[DataRequired(), EqualTo("password")]
-    )
-    node_id = HiddenField()
-    node_version = HiddenField()
-    content_type = HiddenField()
-    submit = SubmitField("Register")
-
-    def validate_username(self, username):
-        user = User.query.filter_by(username=username.data).first()
-        if user is not None:
-            raise ValidationError(
-                f"Username {username.data} already in use.  Please use a different username."
-            )
-
-    def validate_email(self, email):
-        user = User.query.filter_by(email=email.data).first()
-        if user is not None:
-            raise ValidationError(
-                f"Email {email.data} already in use.  Please us a different email address."
-            )
-
-
 class EditUserForm(FlaskForm):
     username = StringField(
         "Username",
