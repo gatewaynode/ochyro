@@ -22,6 +22,8 @@ from core.models import User
 
 
 class LoginForm(FlaskForm):
+    """A simple login form.  WARNING: This will be deprecated"""
+
     username = StringField(
         "Username",
         validators=[
@@ -35,6 +37,8 @@ class LoginForm(FlaskForm):
 
 
 class EditUserForm(FlaskForm):
+    """Create or edit users"""
+
     username = StringField(
         "Username",
         description="Must be unique, underscores and alphanumerics only.",
@@ -79,6 +83,8 @@ class EditUserForm(FlaskForm):
 
 
 class EditArticleForm(FlaskForm):
+    """Create or edit articles"""
+
     title = StringField(
         "Title",
         description="HTML Allowed.",

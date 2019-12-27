@@ -29,7 +29,7 @@ from pprint import pprint
 @app.before_first_request
 def setup_cms():
     """Check that the root user is set, if not set it and the content types."""
-    if not len(User.query.all()):  # The implied short circuit
+    if not User.query.all():  # The implied short circuit
         import core.init_cms
 
 
@@ -141,6 +141,13 @@ def view_article(node):
     return render_template(
         "article.html", title=content["content"].title, content=content
     )
+
+
+@app.route("/view/articles-list")
+def view_articles_list():
+    """View a list of all articles by title linked to article view"""
+    table_content = views.view_all_articles()
+    return render_template("view_all_articles.html", table_content=table_content)
 
 
 @app.route("/content-control")

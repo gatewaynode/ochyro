@@ -1,6 +1,8 @@
 from core import app, db
 from core.models import Node, User, Article
 from core.controllers import load, load_node, load_content, dictify_content
+import logging
+import traceback
 import json
 from pprint import pprint
 
@@ -10,33 +12,34 @@ def view_front_page():
     raw_content = Article.query.all()
     articles = []
     for content in raw_content:
-        node = Node.query.get(content._id)
-        articles.append(
-            {
-                "node": {
-                    "_id": node._id,
-                    "_version": node._version,
-                    "_hash": node._hash,
-                    "first_child": node.first_child,
-                    "__parents": node.layer_parents,
-                    "__children": node.layer_children,
-                },
-                "content": {
-                    "_id": content._id,
-                    "_version": content._version,
-                    "_hash": content._hash,
-                    "title": content.title,
-                    "body": content.body,
-                },
-            }
-        )
+        articles.append(load(content._node_id))
+        # node = Node.query.get(content._id)
+        # articles.append(
+        #     {
+        #         "node": {
+        #             "_id": node._id,
+        #             "_version": node._version,
+        #             "_hash": node._hash,
+        #             "first_child": node.first_child,
+        #             "__parents": node.layer_parents,
+        #             "__children": node.layer_children,
+        #         },
+        #         "content": {
+        #             "_id": content._id,
+        #             "_version": content._version,
+        #             "_hash": content._hash,
+        #             "title": content.title,
+        #             "body": content.body,
+        #         },
+        #     }
+        # )
     return articles
 
 
 def view_node(node_id):
     """A generic method of safely loading a single piece of content"""
     try:
-        safe_id = int(node)
+        safe_id = int(node_id)
     except Exception as e:
         logging.error(traceback.format_exc())
         logging.error(
@@ -78,5 +81,22 @@ def view_content_control():
                     "edit": f"<a href=\"{content['type'].edit_url}/{content['node']._id}\">edit</a>",
                 }
             )
+
+    return json.dumps(table_content)
+
+
+def view_all_articles():
+    articles = Article.query.all()
+    contents = []
+    for article in articles:
+        contents.append(load(article._node_id))
+    table_content = []
+    for content in contents:
+        table_content.append(
+            {
+                "title": f"<a href=\"{content['type'].view_url}/{content['node']._id}\">{content['content'].title}</a>",
+                "date": str(content["content"]._timestamp),
+            }
+        )
 
     return json.dumps(table_content)

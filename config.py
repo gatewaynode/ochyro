@@ -9,3 +9,5 @@ class Config(object):
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     OPEN_REGISTRATION = True
+
+    FREEZER_DEFAULT_MIMETYPE = "text/html"

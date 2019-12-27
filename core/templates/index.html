@@ -1,14 +1,17 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <div class="front-page articles-list"
-      <div class="title">Articles</div>
+  <div class="front-page articles-list container">
+      <div class="title">Recent Articles</div>
       {% for article in articles %}
         <div class="article-title">
-          {{ article["content"]["title"] | safe }}
+          <a href={{ article["type"].view_url }}/{{ article["node"]._id }}>{{ article["content"].title | safe }}</a>
+        </div>
+        <div class="article-created-date">
+          {{ article["content"]._timestamp }}
         </div>
         <div class="article-body">
-          {{ article["content"]["body"] | safe }}
+          {{ article["content"].body | safe }}
         </div>
       {% endfor %}
   </div>
