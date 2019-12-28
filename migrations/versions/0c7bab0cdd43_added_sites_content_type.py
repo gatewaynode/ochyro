@@ -1,8 +1,8 @@
-"""empty message
+"""Added sites content type
 
-Revision ID: 9d691ae4a795
+Revision ID: 0c7bab0cdd43
 Revises: 
-Create Date: 2019-12-26 13:33:30.015016
+Create Date: 2019-12-28 12:49:09.697475
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '9d691ae4a795'
+revision = '0c7bab0cdd43'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -100,6 +100,48 @@ def upgrade():
     op.create_index(op.f('ix_content_type_revision__timestamp'), 'content_type_revision', ['_timestamp'], unique=False)
     op.create_index(op.f('ix_content_type_revision__version'), 'content_type_revision', ['_version'], unique=False)
     op.create_index(op.f('ix_content_type_revision_name'), 'content_type_revision', ['name'], unique=False)
+    op.create_table('site',
+    sa.Column('_id', sa.Integer(), nullable=False),
+    sa.Column('_version', sa.Integer(), nullable=True),
+    sa.Column('_node_id', sa.Integer(), nullable=True),
+    sa.Column('_hash', sa.String(length=140), nullable=True),
+    sa.Column('_hash_chain', sa.String(length=140), nullable=True),
+    sa.Column('_timestamp', sa.DateTime(), nullable=True),
+    sa.Column('_lock', sa.UnicodeText(), nullable=True),
+    sa.Column('_state', sa.String(length=100), nullable=True),
+    sa.Column('_perms', sa.String(length=100), nullable=True),
+    sa.Column('site_name', sa.String(length=200), nullable=True),
+    sa.Column('local_build_dir', sa.String(length=200), nullable=True),
+    sa.Column('static_files_dir', sa.String(length=200), nullable=True),
+    sa.Column('index_content', sa.Integer(), nullable=True),
+    sa.Column('hosting_type', sa.String(length=100), nullable=True),
+    sa.PrimaryKeyConstraint('_id')
+    )
+    op.create_index(op.f('ix_site__id'), 'site', ['_id'], unique=False)
+    op.create_index(op.f('ix_site__node_id'), 'site', ['_node_id'], unique=False)
+    op.create_index(op.f('ix_site__timestamp'), 'site', ['_timestamp'], unique=False)
+    op.create_index(op.f('ix_site__version'), 'site', ['_version'], unique=False)
+    op.create_table('site_revision',
+    sa.Column('_id', sa.Integer(), nullable=False),
+    sa.Column('_node_id', sa.Integer(), nullable=True),
+    sa.Column('_hash', sa.String(length=140), nullable=True),
+    sa.Column('_hash_chain', sa.String(length=140), nullable=True),
+    sa.Column('_timestamp', sa.DateTime(), nullable=True),
+    sa.Column('_lock', sa.UnicodeText(), nullable=True),
+    sa.Column('_state', sa.String(length=100), nullable=True),
+    sa.Column('_perms', sa.String(length=100), nullable=True),
+    sa.Column('_version', sa.Integer(), nullable=False),
+    sa.Column('site_name', sa.String(length=200), nullable=True),
+    sa.Column('local_build_dir', sa.String(length=200), nullable=True),
+    sa.Column('static_files_dir', sa.String(length=200), nullable=True),
+    sa.Column('index_content', sa.Integer(), nullable=True),
+    sa.Column('hosting_type', sa.String(length=100), nullable=True),
+    sa.PrimaryKeyConstraint('_id', '_version')
+    )
+    op.create_index(op.f('ix_site_revision__id'), 'site_revision', ['_id'], unique=False)
+    op.create_index(op.f('ix_site_revision__node_id'), 'site_revision', ['_node_id'], unique=False)
+    op.create_index(op.f('ix_site_revision__timestamp'), 'site_revision', ['_timestamp'], unique=False)
+    op.create_index(op.f('ix_site_revision__version'), 'site_revision', ['_version'], unique=False)
     op.create_table('user',
     sa.Column('_id', sa.Integer(), nullable=False),
     sa.Column('_version', sa.Integer(), nullable=True),
@@ -231,6 +273,16 @@ def downgrade():
     op.drop_index(op.f('ix_user__node_id'), table_name='user')
     op.drop_index(op.f('ix_user__id'), table_name='user')
     op.drop_table('user')
+    op.drop_index(op.f('ix_site_revision__version'), table_name='site_revision')
+    op.drop_index(op.f('ix_site_revision__timestamp'), table_name='site_revision')
+    op.drop_index(op.f('ix_site_revision__node_id'), table_name='site_revision')
+    op.drop_index(op.f('ix_site_revision__id'), table_name='site_revision')
+    op.drop_table('site_revision')
+    op.drop_index(op.f('ix_site__version'), table_name='site')
+    op.drop_index(op.f('ix_site__timestamp'), table_name='site')
+    op.drop_index(op.f('ix_site__node_id'), table_name='site')
+    op.drop_index(op.f('ix_site__id'), table_name='site')
+    op.drop_table('site')
     op.drop_index(op.f('ix_content_type_revision_name'), table_name='content_type_revision')
     op.drop_index(op.f('ix_content_type_revision__version'), table_name='content_type_revision')
     op.drop_index(op.f('ix_content_type_revision__timestamp'), table_name='content_type_revision')

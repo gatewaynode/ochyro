@@ -7,6 +7,7 @@ from wtforms import (
     BooleanField,
     SubmitField,
     HiddenField,
+    SelectField,
 )
 from wtforms.validators import (
     ValidationError,
@@ -15,6 +16,7 @@ from wtforms.validators import (
     EqualTo,
     Length,
     Regexp,
+    AnyOf,
 )
 from core.models import User
 
@@ -105,6 +107,45 @@ class EditArticleForm(FlaskForm):
         "Tags",
         description="Comma separated values, plaintext.",
         default="Untagged",
+        validators=[DataRequired()],
+    )
+    node_id = HiddenField()
+    node_version = HiddenField()
+    node_hash = HiddenField()
+    content_hash = HiddenField()
+    content_type = HiddenField()
+    submit = SubmitField("Save")
+
+
+class EditSiteForm(FlaskForm):
+    """Create or edit site publishing endpoints"""
+
+    local_build_dir = StringField(
+        "Local Build Directory",
+        description="The full local path to artifacts in",
+        validators=[
+            DataRequired(),
+            Length(min=1, max=200, message="200 character max."),
+        ],
+    )
+    static_files_dir = StringField(
+        "Static Files Directory",
+        description="The full local path to the static files directory for this site",
+        validators=[
+            DataRequired(),
+            Length(min=1, max=200, message="200 character max"),
+        ],
+    )
+    index_content = SelectField(
+        "Content Index",
+        description="The node ID for the front page index for the site",
+        validators=[DataRequired()],
+    )
+    hosting_type_options = [(1, "Github Pages")]
+    hosting_type = SelectField(
+        "Hosting Type",
+        description="The hosting type of the endpoint (only Github Pages currently supported)",
+        choices=hosting_type_options,
         validators=[DataRequired()],
     )
     node_id = HiddenField()

@@ -69,6 +69,10 @@ body .navbar-default .navbar-toggle .icon-bar{
   margin-bottom: 10px;
 }
 
+.article .article-created-date{
+  padding-left: 10px;
+}
+
 /*   left-margin: 100px; */
 .login-form{
   padding: 10px;
@@ -88,6 +92,10 @@ body .navbar-default .navbar-toggle .icon-bar{
 }
 
 /* General Form Styles */
+
+form .form-control{
+  width: 80%;
+}
 
 input{
   background-color: #2F2F2F;

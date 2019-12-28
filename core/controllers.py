@@ -382,3 +382,71 @@ def save_article(data):
         content_obj = _associate_node(node, article, content_type)
 
         return content_obj
+
+
+def save_site(data):
+    """Create or update an site content type"""
+
+    # Test content type exists first
+    content_type_content = ContentType.query.filter_by(name="Site Content Type").first()
+    if not content_type_content:
+        logging.error("Content Type 'Site' not found' crash and burn")
+        exit(1)
+    else:
+        # Kind of redundant to load this again, but it sticks to the content model
+        content_type = load(content_type_content._node_id)
+
+    if data["node_id"] and data["node_version"]:  # Assume update
+
+        existing_content = load(data["node_id"])
+        # @TODO Check hashes here just cause we can
+        # @TODO Check locks here, if locked restore form and return user
+
+        content_revision = save_revision(existing_content["content"], SiteRevision)
+
+        new_version_number = existing_content["content"]._version + 1
+        existing_content["content"]._version = new_version_number
+        existing_content["content"]._node_id = existing_content["node"]._id
+        existing_content["content"]._lock = ""
+        existing_content["content"].local_build_dir = clean_html(
+            data["locla_build_dir"]
+        )
+        existing_content["content"].static_files_dir = clean_html(
+            data["static_files_dir"]
+        )
+        existing_content["content"].index_content = data["index_content"]
+        existing_content["content"].hosting_type = clean_html(data["hosting_type"])
+        existing_content["content"]._hash = _hash_table(existing_content["content"])
+        existing_content["content"]._hash_chain = _hash_table(
+            existing_content["content"], chain=True
+        )
+        db.session.add(existing_content["content"])
+        db.session.commit()
+        db.session.refresh(existing_content["content"])
+
+        return existing_content
+
+    else:  # Assume new article
+        node = _register_node()
+
+        site = Site(
+            _version=1,
+            _node_id=node._id,
+            _lock="",
+            local_build_dir=data["local_build_dir"],
+            static_files_dir=data["static_files_dir"],
+            index_content=data["index_content"],
+            hosting_type=data["hosting_type"],
+        )
+        # First save get's our article ID to include in the hash
+        db.session.add(site)
+        db.session.commit()
+        db.session.refresh(site)
+        article._hash = _hash_table(site)  # Hash after getting id
+        article._hash_chain = _hash_table(site, chain=True)
+        db.session.add(site)
+        db.session.commit()
+
+        content_obj = _associate_node(node, site, content_type)
+
+        return content_obj

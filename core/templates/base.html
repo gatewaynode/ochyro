@@ -32,7 +32,7 @@
                 </ul>
                 <ul class="nav navbar-nav navbar-right">
                     {% if current_user.is_anonymous %}
-                    <li alt="This doesn't actually work on published content yet.">Login</li>
+                    <li><a href="/">Login</a></li>
                     {% else %}
                     <li><a href={{url_for('content_control')}}>Content Control</a></li>
                     <li><a href="{{ url_for('logout') }}">Logout</a></li>

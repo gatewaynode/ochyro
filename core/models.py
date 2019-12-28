@@ -169,3 +169,24 @@ class ArticleRevision(db.Model):
     _version = db.Column(db.Integer, primary_key=True, index=True)  # Revision override
     title = db.Column(db.String(200))
     body = db.Column(db.UnicodeText())
+
+
+class Site(db.Model):
+    """A delivery endpoint to publish content to"""
+
+    site_name = db.Column(db.String(200))
+    local_build_dir = db.Column(db.String(200))
+    static_files_dir = db.Column(db.String(200))
+    index_content = db.Column(db.Integer)
+    hosting_type = db.Column(db.String(100))
+
+
+class SiteRevision(db.Model):
+    """A delivery endpoint to publish content to"""
+
+    _version = db.Column(db.Integer, primary_key=True, index=True)  # Revision override
+    site_name = db.Column(db.String(200))
+    local_build_dir = db.Column(db.String(200))
+    static_files_dir = db.Column(db.String(200))
+    index_content = db.Column(db.Integer)
+    hosting_type = db.Column(db.String(100))

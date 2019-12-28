@@ -7,16 +7,16 @@ from flask_login import (
     login_manager,
 )
 from core import app, db, login
-from core.forms import LoginForm, EditUserForm, EditArticleForm
+from core.forms import LoginForm, EditUserForm, EditArticleForm, EditSiteForm
 from core.controllers import (
     normalize_form_input,
     save_user,
     save_article,
     load_node,
     load_content,
+    load,
 )
 
-# from core.views import view_front_page, dictify_content, view_all, view_content_control
 import core.views as views
 from core.models import User
 from werkzeug.urls import url_parse
@@ -81,6 +81,9 @@ def logout():
     return redirect(url_for("index"))
 
 
+# Content type routes
+
+
 @app.route("/edit/user", methods=["GET", "POST"])
 @app.route("/edit/user/<node>", methods=["GET", "POST"])
 @login_required
@@ -141,6 +144,41 @@ def view_article(node):
     return render_template(
         "article.html", title=content["content"].title, content=content
     )
+
+
+@app.route("/edit/site/", methods=["GET", "POST"])
+@app.route("/edit/site/<node>", methods=["GET", "POST"])
+@login_required
+def edit_site(node=None):
+    form = EditSiteForm()
+    index_choices = views.view_all_articles_as_node_options()
+    form.index_content.choices = index_choices
+    if form.validate_on_submit():
+        save_site(normalize_form_input(form))
+        flash("Site saved.")
+        return redirect(url_for("index"))
+    if node:
+        content = load(node)
+        return render_template(
+            "edit_site.html", title="Edit Site", form=form, content=content,
+        )
+    else:
+        print("Form to pass:")
+        pprint(vars(form))
+        return render_template(
+            "edit_site.html", title="Create Site", form=form, content=None,
+        )
+
+
+@app.route("/view/site/<node>")
+@login_required
+def view_site(node=None):
+    """View a site using a generic view and template"""
+    content = views.view_node(node)
+    return render_template("generic.html", content=content)
+
+
+# Composed view routes
 
 
 @app.route("/view/articles-list")

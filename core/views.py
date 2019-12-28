@@ -100,3 +100,13 @@ def view_all_articles():
         )
 
     return json.dumps(table_content)
+
+
+def view_all_articles_as_node_options():
+    """Dynamically load articles as options for a form"""
+    raw_options = Article.query.all()
+    index_content_options = []
+    for option in raw_options:
+        index_content_options.append((option._node_id, option.title))
+
+    return index_content_options

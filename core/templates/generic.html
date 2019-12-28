@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- This is temporary until I build the content type viewable fields data -->
+  <div class="container generic {{ content['type'].name.replace(' ', '-').lower() }}">
+    {% for key, value in content["content"].__dict__.items() %}
+      {% if not key.startswith("_") %}
+        <div class="label {{ key.replace('_', '-').lower() }}">
+          {{ key.replace("_", " ").title() }}
+        </div>
+        <div class="content {{ key.replace('_', '-').lower() }}">
+          {{ value }}
+        </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+{% endblock %}
