@@ -10,6 +10,8 @@ from core.models import (
     UserRevision,
     Article,
     ArticleRevision,
+    Site,
+    SiteRevision,
 )
 from datetime import datetime
 import hashlib
@@ -20,6 +22,7 @@ import base64
 import html
 import copy
 from lxml.html.clean import clean_html
+import re
 from pprint import pprint
 
 
@@ -27,7 +30,12 @@ def normalize_form_input(form):
     """Take a WTF Form object and normalize as a flat dict."""
     normalized_data = {}
     for key, value in vars(form).items():
-        if not key.startswith("_") and key != "meta":
+        if (
+            not key.startswith("_")
+            and key != "meta"
+            and key != "submit"
+            and not key.startswith("csrf")
+        ):
             normalized_data[key] = value.data
     return normalized_data
 
@@ -135,6 +143,73 @@ def _associate_node(node, content, content_type):
     db.session.commit()
 
     return {"node": node, "content": content, "type": content_type}
+
+
+def content_type_check_and_load(content_type_name):
+    """Common function of saving content is to check and load the content type first"""
+
+    content_type_content = ContentType.query.filter_by(
+        name=content_type_name
+    ).first()  # Filter sanity check, this is internal only input
+    if not content_type_content:
+        logging.error(f"Content Type '{content_type_name}' not found' crash and burn")
+        exit(1)
+    else:
+        # Kind of redundant to load this again, but it sticks to the content model
+        content_type = load(content_type_content._node_id)
+        return content_type
+
+
+def load_and_revise(node_id, content_revision_object):
+    """Common function to save a revision of the existing content before updating"""
+
+    existing_content = load(node_id)
+    # @TODO Check hashes here just cause we can
+    # @TODO Check locks here, if locked restore form and return user
+
+    content_revision = save_revision(
+        existing_content["content"], content_revision_object
+    )
+    return existing_content
+
+
+def update_object_hash_and_save(existing_content, data):
+    """Update the content object values filtering according to content type settings"""
+
+    new_version_number = existing_content["content"]._version + 1
+
+    # Set common update fields
+    existing_content["content"]._version = new_version_number
+    existing_content["content"]._lock = ""
+
+    # Derive per field settings from content type
+    editable_fields = json.loads(existing_content["type"].editable_fields)
+
+    already_set_values = ["_version", "_node_id", "_lock"]
+    for key in data:
+        print(key)
+        # Security filter routines, not likely ever finalized
+        if key not in already_set_values and not key.startswith("hidden_"):
+            if editable_fields[key]["sec_filter_type"] == "REGEX":
+                # @TODO This is problematic, needs exception handling
+                regex = re.compile(editable_fields[key]["sec_filter_data"])
+                set_data = "".join(filter(regex.search, data[key]))
+            elif editable_fields[key]["sec_filter_type"] == "PLAIN_TEXT":
+                # Strip everything but alphanumerics, spaces and some simple punctuation
+                regex = re.compile("[\w\?\!\,\_\-\.\s]")
+                set_data = "".join(filter(regex.search, data[key]))
+            elif editable_fields[key]["sec_filter_type"] == "HTML_LIGHT":
+                set_data = filter_html(data[key])
+            elif editable_fields[key]["sec_filter_type"] == "HTML_EXTENDED":
+                set_data = filter_html(data[key])
+            else:  # Assume None
+                set_data = data[key]
+
+            setattr(existing_content["content"], key, set_data)
+
+    db.session.add(existing_content["content"])
+    db.session.commit()
+    db.session.refresh(existing_content["content"])
 
 
 def load(node_id):
@@ -266,7 +341,7 @@ def save_user(data):
         # Kind of redundant to load this again, but it sticks to the content model
         content_type = load_content(load_node(content_type_content._node_id))
 
-    if data["node_id"] and data["node_version"]:  # Assume update
+    if data["hidden_node_id"] and data["hidden_node_version"]:  # Assume update
         node = load_node(data["node_id"])
         if _check_node_lock(node._lock):
             return form
@@ -289,8 +364,13 @@ def save_user(data):
         existing_user["content"]._hash_chain = _hash_table(
             existing_user["content"], chain=True
         )
+        existing_user["content"]._hash = _hash_table(
+            article
+        )  # Hash after updating object values
+        existing_user["content"]._hash_chain = _hash_table(article, chain=True)
         db.session.add(existing_user["content"])
         db.session.commit()
+        db.session.refresh(existing_user)
 
         return existing_user
 
@@ -312,6 +392,7 @@ def save_user(data):
         user._hash_chain = _hash_table(user, chain=True)
         db.session.add(user)
         db.session.commit()
+        db.session.refresh(user)
 
         content = _associate_node(node, user, content_type)
 
@@ -336,7 +417,7 @@ def save_article(data):
         # Kind of redundant to load this again, but it sticks to the content model
         content_type = load_content(load_node(content_type_content._node_id))
 
-    if data["node_id"] and data["node_version"]:  # Assume update
+    if data["hidden_node_id"] and data["hidden_node_version"]:  # Assume update
 
         existing_content = load_content(load_node(data["node_id"]))
         # @TODO Check hashes here just cause we can
@@ -351,6 +432,12 @@ def save_article(data):
         existing_content["content"].title = clean_html(data["title"])
         existing_content["content"].body = clean_html(data["body"])
         existing_content["content"]._hash = _hash_table(existing_content["content"])
+        existing_content["content"]._hash_chain = _hash_table(
+            existing_content["content"], chain=True
+        )
+        existing_content["content"]._hash = _hash_table(
+            existing_content["content"]
+        )  # Hash after updating object values
         existing_content["content"]._hash_chain = _hash_table(
             existing_content["content"], chain=True
         )
@@ -378,6 +465,7 @@ def save_article(data):
         article._hash_chain = _hash_table(article, chain=True)
         db.session.add(article)
         db.session.commit()
+        db.session.refresh(article)
 
         content_obj = _associate_node(node, article, content_type)
 
@@ -387,65 +475,74 @@ def save_article(data):
 def save_site(data):
     """Create or update an site content type"""
 
-    # Test content type exists first
-    content_type_content = ContentType.query.filter_by(name="Site Content Type").first()
-    if not content_type_content:
-        logging.error("Content Type 'Site' not found' crash and burn")
-        exit(1)
-    else:
-        # Kind of redundant to load this again, but it sticks to the content model
-        content_type = load(content_type_content._node_id)
+    # !! REFACTOR
+    content_type = content_type_check_and_load("Site Content Type")
 
-    if data["node_id"] and data["node_version"]:  # Assume update
+    if data["hidden_node_id"] and data["hidden_node_version"]:  # Assume update
+        # #!!! <- start load and revise
+        # existing_content = load(data["node_id"])
+        # # @TODO Check hashes here just cause we can
+        # # @TODO Check locks here, if locked restore form and return user
+        #
+        # content_revision = save_revision(existing_content["content"], SiteRevision)
+        # #!!! -> end load and revise
+        existing_content = load_and_revise(data["hidden_node_id"], SiteRevision)
 
-        existing_content = load(data["node_id"])
-        # @TODO Check hashes here just cause we can
-        # @TODO Check locks here, if locked restore form and return user
+        # new_version_number = existing_content["content"]._version + 1
+        # #!!! turn this into a setattr loop
+        # existing_content["content"]._version = new_version_number
+        # existing_content["content"]._node_id = existing_content["node"]._id
+        # existing_content["content"]._lock = ""
+        # existing_content["content"].site_name = clean_html(data["site_name"])
+        # existing_content["content"].local_build_dir = clean_html(
+        #     data["local_build_dir"]
+        # )
+        # existing_content["content"].static_files_dir = clean_html(
+        #     data["static_files_dir"]
+        # )
+        # existing_content["content"].index_content = data["index_content"]
+        # existing_content["content"].hosting_type = data["hosting_type"]
+        # #!!! <- begin hash and save
+        # existing_content["content"]._hash = _hash_table(
+        #     existing_content["content"]
+        # )  # Hash after updating object values
+        # existing_content["content"]._hash_chain = _hash_table(
+        #     existing_content["content"], chain=True
+        # )
+        # db.session.add(existing_content["content"])
+        # db.session.commit()
+        # db.session.refresh(existing_content["content"])
+        # #!!! -> end hash and save
 
-        content_revision = save_revision(existing_content["content"], SiteRevision)
-
-        new_version_number = existing_content["content"]._version + 1
-        existing_content["content"]._version = new_version_number
-        existing_content["content"]._node_id = existing_content["node"]._id
-        existing_content["content"]._lock = ""
-        existing_content["content"].local_build_dir = clean_html(
-            data["locla_build_dir"]
-        )
-        existing_content["content"].static_files_dir = clean_html(
-            data["static_files_dir"]
-        )
-        existing_content["content"].index_content = data["index_content"]
-        existing_content["content"].hosting_type = clean_html(data["hosting_type"])
-        existing_content["content"]._hash = _hash_table(existing_content["content"])
-        existing_content["content"]._hash_chain = _hash_table(
-            existing_content["content"], chain=True
-        )
-        db.session.add(existing_content["content"])
-        db.session.commit()
-        db.session.refresh(existing_content["content"])
+        update_object_hash_and_save(existing_content, data)
 
         return existing_content
 
-    else:  # Assume new article
+    else:  # Assume new site
         node = _register_node()
 
         site = Site(
             _version=1,
             _node_id=node._id,
             _lock="",
+            site_name=data["site_name"],
             local_build_dir=data["local_build_dir"],
             static_files_dir=data["static_files_dir"],
             index_content=data["index_content"],
             hosting_type=data["hosting_type"],
         )
         # First save get's our article ID to include in the hash
+        #!!! <- being first save
         db.session.add(site)
         db.session.commit()
         db.session.refresh(site)
-        article._hash = _hash_table(site)  # Hash after getting id
-        article._hash_chain = _hash_table(site, chain=True)
+        #!!! -> end first saved
+        ### reuse hash and save here
+        site._hash = _hash_table(site)  # Hash after getting id
+        site._hash_chain = _hash_table(site, chain=True)
         db.session.add(site)
         db.session.commit()
+        db.session.refresh(site)
 
         content_obj = _associate_node(node, site, content_type)
 

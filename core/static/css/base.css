@@ -109,6 +109,9 @@ form input{
   color: #5FDF2F;
   font-weight: bold;
 }
+.form-group p{
+  background-color: rgba(0, 0, 0, 0.7);
+}
 form input#submit{
   color: #F0F0F0;
 }

@@ -3,11 +3,11 @@
 {% block content %}
   {% if content %}
   {# A bit strange but seems to be the most consistent way to get these set #}
-    {% set _ = form.node_id.process_data(content["node"]._id) %}
-    {% set _ = form.node_version.process_data(content["node"]._version) %}
-    {% set _ = form.node_hash.process_data(content["node"]._hash) %}
-    {% set _ = form.content_hash.process_data(content["content"]._hash) %}
-    {% set _ = form.content_type.process_data(content["type"].content_class) %}
+    {% set _ = form.hidden_node_id.process_data(content["node"]._id) %}
+    {% set _ = form.hidden_node_version.process_data(content["node"]._version) %}
+    {% set _ = form.hidden_node_hash.process_data(content["node"]._hash) %}
+    {% set _ = form.hidden_content_hash.process_data(content["content"]._hash) %}
+    {% set _ = form.hidden_content_type.process_data(content["type"].content_class) %}
   {% endif %}
 	<div class="title">
 		<h1>{{ title }}</h1>

@@ -36,6 +36,7 @@ def init_content_type(build_content_type):
         content_type._hash_chain = controllers._hash_table(content_type, chain=True)
         db.session.add(content_type)
         db.session.commit()
+        db.session.refresh(content_type)
 
         db.session.refresh(node)
         node.first_child = json.dumps(
@@ -64,18 +65,72 @@ content_types = [
     {
         "content_type_name": "User Content Type",
         "content_class": "User",
-        "editable_fields": "All",
-        "viewable_fields": "All",
+        "editable_fields": json.dumps(
+            {
+                "username": {"sec_filter_type": "REGEX", "sec_filter_data": "^\w+$"},
+                "email": {
+                    "sec_filter_type": "REGEX",
+                    "sec_filter_data": "[^\w.@\+\-\.]",
+                },
+                "password_hash": {"sec_filter_type": "NONE", "sec_filter_data": ""},
+                "last_login": {"sec_filter_type": "NONE", "sec_filter_data": ""},
+                "roles": {"sec_filter_type": "NONE", "sec_filter_data": ""},
+            }
+        ),
+        "viewable_fields": json.dumps(
+            {
+                "username": {},
+                "email": {},
+                "password_hash": {},
+                "last_login": {},
+                "roles": {},
+            }
+        ),
         "edit_url": "/edit/user",
         "view_url": "/view/user",
     },
     {
         "content_type_name": "Article Content Type",
         "content_class": "Article",
-        "editable_fields": "All",
-        "viewable_fields": "All",
+        "editable_fields": json.dumps(
+            {
+                "title": {"sec_filter_type": "NONE", "sec_filter_data": ""},
+                "body": {"sec_filter_type": "NONE", "sec_filter_data": ""},
+            }
+        ),
+        "viewable_fields": json.dumps({"title": {}, "body": {}}),
         "edit_url": "/edit/article",
         "view_url": "/view/article",
+    },
+    {
+        "content_type_name": "Site Content Type",
+        "content_class": "Site",
+        "editable_fields": json.dumps(
+            {
+                "site_name": {"sec_filter_type": "PLAIN_TEXT", "sec_filter_data": "",},
+                "local_build_dir": {
+                    "sec_filter_type": "REGEX",
+                    "sec_filter_data": "[\w.\/\_\-\.\\]",
+                },
+                "static_files_dir": {
+                    "sec_filter_type": "REGEX",
+                    "sec_filter_data": "[\w.\/_\-\.\\]",
+                },
+                "index_content": {"sec_filter_type": "NONE", "sec_filter_data": "",},
+                "hosting_type": {"sec_filter_type": "NONE", "sec_filter_data": "",},
+            }
+        ),
+        "viewable_fields": json.dumps(
+            {
+                "site_name": {},
+                "local_build_dir": {},
+                "static_files_dir": {},
+                "index_content": {},
+                "hosting_type": {},
+            }
+        ),
+        "edit_url": "/edit/site",
+        "view_url": "/view/site",
     },
 ]
 
@@ -87,8 +142,8 @@ if not models.ContentType.query.all():  # Sanity check
 # Init step 2. Create the root user
 if not models.User.query.all():  # Sanity check
     root_user = {
-        "node_id": "",
-        "node_version": "",
+        "hidden_node_id": "",
+        "hidden_node_version": "",
         "username": "root",
         "email": "none@none.com",
         "password": "dog",

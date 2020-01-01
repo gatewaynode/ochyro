@@ -12,6 +12,7 @@ from core.controllers import (
     normalize_form_input,
     save_user,
     save_article,
+    save_site,
     load_node,
     load_content,
     load,
@@ -154,19 +155,20 @@ def edit_site(node=None):
     index_choices = views.view_all_articles_as_node_options()
     form.index_content.choices = index_choices
     if form.validate_on_submit():
+        print("For to validate index content")
+        pprint(vars(form.index_content))
         save_site(normalize_form_input(form))
         flash("Site saved.")
         return redirect(url_for("index"))
     if node:
         content = load(node)
-        return render_template(
-            "edit_site.html", title="Edit Site", form=form, content=content,
-        )
-    else:
-        print("Form to pass:")
         pprint(vars(form))
         return render_template(
-            "edit_site.html", title="Create Site", form=form, content=None,
+            "edit_site.html", title="Edit Site", form=form, content=content
+        )
+    else:
+        return render_template(
+            "edit_site.html", title="Create Site", form=form, content=None
         )
 
 

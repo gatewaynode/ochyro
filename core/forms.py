@@ -62,11 +62,11 @@ class EditUserForm(FlaskForm):
     password2 = PasswordField(
         "Repeat Password", validators=[DataRequired(), EqualTo("password")]
     )
-    node_id = HiddenField()
-    node_version = HiddenField()
-    node_hash = HiddenField()
-    content_hash = HiddenField()
-    content_type = HiddenField()
+    _node_id = HiddenField()
+    _node_version = HiddenField()
+    _node_hash = HiddenField()
+    _content_hash = HiddenField()
+    _content_type = HiddenField()
     submit = SubmitField("Save user")
 
     def validate_username(self, username):
@@ -109,17 +109,25 @@ class EditArticleForm(FlaskForm):
         default="Untagged",
         validators=[DataRequired()],
     )
-    node_id = HiddenField()
-    node_version = HiddenField()
-    node_hash = HiddenField()
-    content_hash = HiddenField()
-    content_type = HiddenField()
+    _node_id = HiddenField()
+    _node_version = HiddenField()
+    _node_hash = HiddenField()
+    _content_hash = HiddenField()
+    _content_type = HiddenField()
     submit = SubmitField("Save")
 
 
 class EditSiteForm(FlaskForm):
     """Create or edit site publishing endpoints"""
 
+    site_name = StringField(
+        "Site Name",
+        description="A descriptive and unique name for the site",
+        validators=[
+            DataRequired(),
+            Length(min=1, max=200, message="200 character max"),
+        ],
+    )
     local_build_dir = StringField(
         "Local Build Directory",
         description="The full local path to artifacts in",
@@ -139,18 +147,20 @@ class EditSiteForm(FlaskForm):
     index_content = SelectField(
         "Content Index",
         description="The node ID for the front page index for the site",
+        coerce=int,
         validators=[DataRequired()],
     )
     hosting_type_options = [(1, "Github Pages")]
     hosting_type = SelectField(
         "Hosting Type",
         description="The hosting type of the endpoint (only Github Pages currently supported)",
+        coerce=int,
         choices=hosting_type_options,
         validators=[DataRequired()],
     )
-    node_id = HiddenField()
-    node_version = HiddenField()
-    node_hash = HiddenField()
-    content_hash = HiddenField()
-    content_type = HiddenField()
+    hidden_node_id = HiddenField()
+    hidden_node_version = HiddenField()
+    hidden_node_hash = HiddenField()
+    hidden_content_hash = HiddenField()
+    hidden_content_type = HiddenField()
     submit = SubmitField("Save")
