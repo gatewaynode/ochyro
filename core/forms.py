@@ -62,11 +62,11 @@ class EditUserForm(FlaskForm):
     password2 = PasswordField(
         "Repeat Password", validators=[DataRequired(), EqualTo("password")]
     )
-    _node_id = HiddenField()
-    _node_version = HiddenField()
-    _node_hash = HiddenField()
-    _content_hash = HiddenField()
-    _content_type = HiddenField()
+    hidden_node_id = HiddenField()
+    hidden_node_version = HiddenField()
+    hidden_node_hash = HiddenField()
+    hidden_content_hash = HiddenField()
+    hidden_content_type = HiddenField()
     submit = SubmitField("Save user")
 
     def validate_username(self, username):
@@ -109,11 +109,11 @@ class EditArticleForm(FlaskForm):
         default="Untagged",
         validators=[DataRequired()],
     )
-    _node_id = HiddenField()
-    _node_version = HiddenField()
-    _node_hash = HiddenField()
-    _content_hash = HiddenField()
-    _content_type = HiddenField()
+    hidden_node_id = HiddenField()
+    hidden_node_version = HiddenField()
+    hidden_node_hash = HiddenField()
+    hidden_content_hash = HiddenField()
+    hidden_content_type = HiddenField()
     submit = SubmitField("Save")
 
 
@@ -156,6 +156,45 @@ class EditSiteForm(FlaskForm):
         description="The hosting type of the endpoint (only Github Pages currently supported)",
         coerce=int,
         choices=hosting_type_options,
+        validators=[DataRequired()],
+    )
+    hidden_node_id = HiddenField()
+    hidden_node_version = HiddenField()
+    hidden_node_hash = HiddenField()
+    hidden_content_hash = HiddenField()
+    hidden_content_type = HiddenField()
+    submit = SubmitField("Save")
+
+
+class EditContentTypeForm(FlaskForm):
+    name = StringField(
+        "Content Type Name",
+        description="An arbitrary name for the content type.",
+        validators=[DataRequired()],
+    )
+    content_class = StringField(
+        "Content Type Data Class",
+        description="The SQL Alchemy database model class.",
+        validators=[DataRequired()],
+    )
+    editable_fields = TextAreaField(
+        "Editable Fields",
+        description="Per field data on editable fields for filters, constraints, permissions in JSON format.",
+        validators=[DataRequired()],
+    )
+    viewable_fields = TextAreaField(
+        "Viewable Fields",
+        description="Per field data on viewable fields for CSS classes, CSS IDs, validators, permissions, widgets in JSON format.",
+        validators=[DataRequired()],
+    )
+    edit_url = StringField(
+        "Edit URL",
+        description="The generic URL for editing a content type.",
+        validators=[DataRequired()],
+    )
+    view_url = StringField(
+        "View URL",
+        description="The generic URL for stand alone viewing of a content type.",
         validators=[DataRequired()],
     )
     hidden_node_id = HiddenField()

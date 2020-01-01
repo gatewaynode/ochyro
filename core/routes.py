@@ -7,7 +7,13 @@ from flask_login import (
     login_manager,
 )
 from core import app, db, login
-from core.forms import LoginForm, EditUserForm, EditArticleForm, EditSiteForm
+from core.forms import (
+    LoginForm,
+    EditContentTypeForm,
+    EditUserForm,
+    EditArticleForm,
+    EditSiteForm,
+)
 from core.controllers import (
     normalize_form_input,
     save_user,
@@ -155,14 +161,11 @@ def edit_site(node=None):
     index_choices = views.view_all_articles_as_node_options()
     form.index_content.choices = index_choices
     if form.validate_on_submit():
-        print("For to validate index content")
-        pprint(vars(form.index_content))
         save_site(normalize_form_input(form))
         flash("Site saved.")
         return redirect(url_for("index"))
     if node:
         content = load(node)
-        pprint(vars(form))
         return render_template(
             "edit_site.html", title="Edit Site", form=form, content=content
         )
@@ -174,8 +177,42 @@ def edit_site(node=None):
 
 @app.route("/view/site/<node>")
 @login_required
-def view_site(node=None):
+def view_site(node):
     """View a site using a generic view and template"""
+    content = views.view_node(node)
+    return render_template("generic.html", content=content)
+
+
+@app.route("/edit/content-type/", methods=["GET", "POST"])
+@app.route("/edit/content-type/<node>", methods=["GET", "POST"])
+@login_required
+def edit_content_type(node=None):
+    form = EditContentTypeForm()
+    if form.validate_on_submit():
+        save_content_type(normalize_form_input(form))
+        flash("Content Type Saved")
+        return redirector(url_for("index"))
+    if node:
+        content = load(node)
+        return render_template(
+            "edit_content_type.html",
+            title="Edit Content Type",
+            form=form,
+            content=content,
+        )
+    else:
+        return render_template(
+            "edit_content_type.html",
+            title="Create Content Type",
+            form=form,
+            content=None,
+        )
+
+
+@app.route("/view/content-type/<node>")
+@login_required
+def view_content_type(node):
+    """View a content type using a generic view and template"""
     content = views.view_node(node)
     return render_template("generic.html", content=content)
 

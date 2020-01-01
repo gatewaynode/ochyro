@@ -53,7 +53,7 @@ def init_content_type(build_content_type):
         db.session.add(node)
         db.session.commit()
 
-        return [node, content_type, content_type]
+        return {"node": node, "content": content_type, "type": content_type}
     else:
         print(
             f"Content type '{build_content_type['content_type_name']}' already exists"
@@ -75,7 +75,8 @@ content_types = [
                 "password_hash": {"sec_filter_type": "NONE", "sec_filter_data": ""},
                 "last_login": {"sec_filter_type": "NONE", "sec_filter_data": ""},
                 "roles": {"sec_filter_type": "NONE", "sec_filter_data": ""},
-            }
+            },
+            indent=4,
         ),
         "viewable_fields": json.dumps(
             {
@@ -84,7 +85,8 @@ content_types = [
                 "password_hash": {},
                 "last_login": {},
                 "roles": {},
-            }
+            },
+            indent=4,
         ),
         "edit_url": "/edit/user",
         "view_url": "/view/user",
@@ -96,9 +98,10 @@ content_types = [
             {
                 "title": {"sec_filter_type": "NONE", "sec_filter_data": ""},
                 "body": {"sec_filter_type": "NONE", "sec_filter_data": ""},
-            }
+            },
+            indent=4,
         ),
-        "viewable_fields": json.dumps({"title": {}, "body": {}}),
+        "viewable_fields": json.dumps({"title": {}, "body": {}}, indent=4),
         "edit_url": "/edit/article",
         "view_url": "/view/article",
     },
@@ -118,7 +121,8 @@ content_types = [
                 },
                 "index_content": {"sec_filter_type": "NONE", "sec_filter_data": "",},
                 "hosting_type": {"sec_filter_type": "NONE", "sec_filter_data": "",},
-            }
+            },
+            indent=4,
         ),
         "viewable_fields": json.dumps(
             {
@@ -127,7 +131,8 @@ content_types = [
                 "static_files_dir": {},
                 "index_content": {},
                 "hosting_type": {},
-            }
+            },
+            indent=4,
         ),
         "edit_url": "/edit/site",
         "view_url": "/view/site",

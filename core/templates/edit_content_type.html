@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block styles %}
+  {{ super() }}
+  <style type="text/css" media="screen">
+    #editor {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+    }
+  </style>
+{% endblock %}
+
+{% block script %}
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.7/ace.js"></script>
+  {{ super() }}
+{% endblock %}
+
+{% block content %}
+  {% if content %}
+    {# A bit strange but seems to be the most consistent way to get these set #}
+    {% set _ = form.hidden_node_id.process_data(content["node"]._id) %}
+    {% set _ = form.hidden_node_version.process_data(content["node"]._version) %}
+    {% set _ = form.hidden_node_hash.process_data(content["node"]._hash) %}
+    {% set _ = form.hidden_content_hash.process_data(content["content"]._hash) %}
+    {% set _ = form.hidden_content_type.process_data(content["type"].content_class) %}
+    {% set _ = form.name.process_data(content["content"].name) %}
+    {% set _ = form.content_class.process_data(content["content"].content_class) %}
+    {% set _ = form.editable_fields.process_data(content["content"].editable_fields) %}
+    {% set _ = form.viewable_fields.process_data(content["content"].viewable_fields) %}
+    {% set _ = form.edit_url.process_data(content["content"].edit_url) %}
+    {% set _ = form.view_url.process_data(content["content"].view_url) %}
+  {% endif %}
+  <div class="container">
+    <div class="title">
+      <h1>{{ title }}</h1>
+    </div>
+    <div class="row">
+      <div class="col-md-12">
+        {{ wtf.quick_form(form) }}
+      </div>
+    </div>
+  </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.7/ace.js" type="text/javascript" charset="utf-8"></script>
+  <script>
+      var editor_1 = ace.edit("editable_fields", {
+        theme: "ace/theme/monokai",
+        mode: "ace/mode/javascript",
+        minLines: 5,
+        maxLines: 30
+      });
+      var editor_2 = ace.edit("viewable_fields", {
+        theme: "ace/theme/monokai",
+        mode: "ace/mode/javascript",
+        minLines: 5,
+        maxLines: 30
+      })
+  </script>
+
+{% endblock %}

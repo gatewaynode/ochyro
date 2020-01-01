@@ -1,8 +1,8 @@
-"""Added sites content type
+"""empty message
 
-Revision ID: 0c7bab0cdd43
+Revision ID: a611b2f05f36
 Revises: 
-Create Date: 2019-12-28 12:49:09.697475
+Create Date: 2019-12-31 14:38:06.401733
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '0c7bab0cdd43'
+revision = 'a611b2f05f36'
 down_revision = None
 branch_labels = None
 depends_on = None
