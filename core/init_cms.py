@@ -80,7 +80,12 @@ content_types = [
         ),
         "viewable_fields": json.dumps(
             {
-                "username": {},
+                "username": {
+                    "viewable": True,
+                    "label": True,
+                    "data_format": "PLAIN_TEXT",  # PLAIN_TEXT, EMAIL, FILENAME, HTML
+                    "roles": "PUBLIC",  # PUBLIC for all or a specific role string
+                },
                 "email": {},
                 "password_hash": {},
                 "last_login": {},
@@ -101,7 +106,24 @@ content_types = [
             },
             indent=4,
         ),
-        "viewable_fields": json.dumps({"title": {}, "body": {}}, indent=4),
+        # Playing aorund with how to handle viewable fields
+        "viewable_fields": json.dumps(
+            {
+                "title": {
+                    "viewable": True,
+                    "label": True,
+                    "data_format": "HTML",  # PLAIN_TEXT, EMAIL, FILENAME, HTML
+                    "roles": "PUBLIC",  # PUBLIC for all or a specific role string
+                },
+                "body": {
+                    "viewable": True,
+                    "label": True,
+                    "data_format": "HTML",  # PLAIN_TEXT, EMAIL, FILENAME, HTML
+                    "roles": "PUBLIC",  # PUBLIC for all or a specific role string
+                },
+            },
+            indent=4,
+        ),
         "edit_url": "/edit/article",
         "view_url": "/view/article",
     },

@@ -22,24 +22,5 @@ def clean():
 
 @task
 def pub():
-    # Pre clean the build directory
-    build_artifacts = os.listdir(os.path.join("core", "build"))
-    print("Found in build dir:")
-    pprint(build_artifacts)
-    print("Removing local artifacts:")
-    for filename in build_artifacts:
-        _filename = os.path.join("core", "build", filename)
-        if filename not in ["index", "view", "static"]:
-            if os.path.isfile(_filename):
-                try:
-                    print(f"removing file {_filename}")
-                    os.remove(_filename)
-                except Exception as e:
-                    logging.error(traceback.format_exc())
-            else:
-                try:
-                    print(f"removing dir {_filename}")
-                    shutil.rmtree(_filename)
-                except Exception as e:
-                    logging.error(traceback.format_exc())
-    # @TODO publish
+    # Re-thinking this approach
+    pass

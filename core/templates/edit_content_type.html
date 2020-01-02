@@ -14,11 +14,6 @@
   </style>
 {% endblock %}
 
-{% block script %}
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.7/ace.js"></script>
-  {{ super() }}
-{% endblock %}
-
 {% block content %}
   {% if content %}
     {# A bit strange but seems to be the most consistent way to get these set #}
