@@ -230,9 +230,15 @@ def view_articles_list():
 @app.route("/content-control")
 @login_required
 def content_control():
-    """Primary content control mechanism, heavily relies on Tabulator."""
+    """Primary content control mechanism"""
     content = views.view_content_control()
     return render_template("content-control.html", content=content)
+
+
+@app.route("/site-control")
+@login_required
+def site_control():
+    """Primary site creation and distribution mechanism"""
 
 
 @app.route("/debug", methods=["GET"])

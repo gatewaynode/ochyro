@@ -60,7 +60,7 @@ def view_content_control():
                     "edit": f"<a href=\"{content['type'].edit_url}/{content['node']._id}\">edit</a>",
                 }
             )
-    return json.dumps(table_content)
+    return json.dumps(table_content, indent=4)
 
 
 def view_site_control():
@@ -69,13 +69,20 @@ def view_site_control():
 
     table_content = []
     for site in sites:
+        preload_index_content = load(site["content"].index_content)
+        # HTML Spaghetti, my favorite
+        index_content_link = f"<a href=\"{preload_index_content['type'].view_url}/preload_index_content['node']._id\">view</a> <a href=\"{preload_index_content['type'].edit_url}/preload_index_content['node']._id\">edit</a>"
         table_content.append(
             {
                 "site_name": site["content"].site_name,
                 "edit_site": f"<a href=\"{site['type'].edit_url}/{site['node']._id}\">edit</a>",
-                "last_published": "",
+                "last_published": site["content"].last_published,
+                "index_content": index_content_link,
+                "menu_content": site["content"].menu_content,
+                "groups_content": site["content"].groups_content,
             }
         )
+    return json.dumps(table_content, indent=4)
 
 
 def view_all_articles():

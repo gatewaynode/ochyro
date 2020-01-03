@@ -144,12 +144,6 @@ class EditSiteForm(FlaskForm):
             Length(min=1, max=200, message="200 character max"),
         ],
     )
-    index_content = SelectField(
-        "Content Index",
-        description="The node ID for the front page index for the site",
-        coerce=int,
-        validators=[DataRequired()],
-    )
     hosting_type_options = [(1, "Github Pages")]
     hosting_type = SelectField(
         "Hosting Type",
@@ -158,6 +152,14 @@ class EditSiteForm(FlaskForm):
         choices=hosting_type_options,
         validators=[DataRequired()],
     )
+    index_content = SelectField(
+        "Content Index",
+        description="The node ID for the front page index for the site",
+        coerce=int,
+        validators=[DataRequired()],
+    )
+    menu_content = TextAreaField()
+    groups_content = TextAreaField()
     hidden_node_id = HiddenField()
     hidden_node_version = HiddenField()
     hidden_node_hash = HiddenField()

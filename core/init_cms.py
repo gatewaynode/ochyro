@@ -84,12 +84,32 @@ content_types = [
                     "viewable": True,
                     "label": True,
                     "data_format": "PLAIN_TEXT",  # PLAIN_TEXT, EMAIL, FILENAME, HTML
-                    "roles": "PUBLIC",  # PUBLIC for all or a specific role string
+                    "roles": "PUBLIC",  # PUBLIC, SELF or a specific role string
                 },
-                "email": {},
-                "password_hash": {},
-                "last_login": {},
-                "roles": {},
+                "email": {
+                    "viewable": True,
+                    "label": True,
+                    "data_format": "EMAIL",  # PLAIN_TEXT, EMAIL, FILENAME, HTML
+                    "roles": "PUBLIC",  # PUBLIC, SELF or a specific role string
+                },
+                "password_hash": {
+                    "viewable": True,
+                    "label": True,
+                    "data_format": "PLAIN_TEXT",  # PLAIN_TEXT, EMAIL, FILENAME, HTML
+                    "roles": "PUBLIC",  # PUBLIC, SELF or a specific role string
+                },
+                "last_login": {
+                    "viewable": True,
+                    "label": True,
+                    "data_format": "PLAIN_TEXT",  # PLAIN_TEXT, EMAIL, FILENAME, HTML
+                    "roles": "PUBLIC",  # PUBLIC, SELF or a specific role string
+                },
+                "roles": {
+                    "viewable": True,
+                    "label": True,
+                    "data_format": "PLAIN_TEXT",  # PLAIN_TEXT, EMAIL, FILENAME, HTML
+                    "roles": "PUBLIC",  # PUBLIC, SELF or a specific role string
+                },
             },
             indent=4,
         ),
@@ -113,13 +133,13 @@ content_types = [
                     "viewable": True,
                     "label": True,
                     "data_format": "HTML",  # PLAIN_TEXT, EMAIL, FILENAME, HTML
-                    "roles": "PUBLIC",  # PUBLIC for all or a specific role string
+                    "roles": "PUBLIC",  # PUBLIC, SELF or a specific role string
                 },
                 "body": {
                     "viewable": True,
                     "label": True,
                     "data_format": "HTML",  # PLAIN_TEXT, EMAIL, FILENAME, HTML
-                    "roles": "PUBLIC",  # PUBLIC for all or a specific role string
+                    "roles": "PUBLIC",  # PUBLIC, SELF or a specific role string
                 },
             },
             indent=4,
@@ -133,6 +153,10 @@ content_types = [
         "editable_fields": json.dumps(
             {
                 "site_name": {"sec_filter_type": "PLAIN_TEXT", "sec_filter_data": "",},
+                "environment_name": {
+                    "sec_filter_type": "PLAIN_TEXT",
+                    "sec_filter_data": "",
+                },
                 "local_build_dir": {
                     "sec_filter_type": "REGEX",
                     "sec_filter_data": "[\w.\/\_\-\.\\]",
@@ -143,16 +167,56 @@ content_types = [
                 },
                 "index_content": {"sec_filter_type": "NONE", "sec_filter_data": "",},
                 "hosting_type": {"sec_filter_type": "NONE", "sec_filter_data": "",},
+                "last_published": {"sec_filter_type": "NONE", "sec_filter_data": "",},
             },
             indent=4,
         ),
         "viewable_fields": json.dumps(
             {
-                "site_name": {},
-                "local_build_dir": {},
-                "static_files_dir": {},
-                "index_content": {},
-                "hosting_type": {},
+                "site_name": {
+                    "viewable": True,
+                    "label": True,
+                    "data_format": "PLAIN_TEXT",  # PLAIN_TEXT, EMAIL, FILENAME, HTML
+                    "widget": "GENERIC",
+                    "roles": ["deployer"],  # PUBLIC, SELF or a specific role string
+                },
+                "environment_name": {
+                    "viewable": True,
+                    "label": True,
+                    "data_format": "PLAIN_TEXT",  # PLAIN_TEXT, EMAIL, FILENAME, HTML
+                    "widget": "GENERIC",
+                    "roles": ["deployer"],  # PUBLIC, SELF or a specific role string
+                },
+                "local_build_dir": {
+                    "viewable": True,
+                    "label": True,
+                    "data_format": "HTML",  # PLAIN_TEXT, EMAIL, FILENAME, HTML
+                    "roles": "PUBLIC",  # PUBLIC, SELF or a specific role string
+                },
+                "static_files_dir": {
+                    "viewable": True,
+                    "label": True,
+                    "data_format": "HTML",  # PLAIN_TEXT, EMAIL, FILENAME, HTML
+                    "roles": "PUBLIC",  # PUBLIC, SELF or a specific role string
+                },
+                "index_content": {
+                    "viewable": True,
+                    "label": True,
+                    "data_format": "HTML",  # PLAIN_TEXT, EMAIL, FILENAME, HTML
+                    "roles": "PUBLIC",  # PUBLIC, SELF or a specific role string
+                },
+                "hosting_type": {
+                    "viewable": True,
+                    "label": True,
+                    "data_format": "HTML",  # PLAIN_TEXT, EMAIL, FILENAME, HTML
+                    "roles": ["PUBLIC"],  # PUBLIC, SELF or a specific role string
+                },
+                "last_published": {
+                    "viewable": True,
+                    "label": True,
+                    "data_format": "HTML",  # PLAIN_TEXT, EMAIL, FILENAME, HTML
+                    "roles": ["PUBLIC"],  # PUBLIC, SELF or a specific role string
+                },
             },
             indent=4,
         ),
