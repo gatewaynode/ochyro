@@ -11,12 +11,10 @@
 {% endblock %}
 
 {% block content %}
-  <div class="create-content-options">
-    <a href={{ url_for("edit_content_type") }}><button>Create Content Type</button></a>
-    <a href={{ url_for("edit_user") }}><button>Create User</button></a>
-    <a href={{ url_for("edit_article") }}><button>Create Article</button></a>
-  </div>
-  <div class="title">Content</div>
+<div class="create-content-options">
+  <a href={{ url_for("edit_site") }}><button>Create Site</button></a>
+</div>
+  <div class="title">Sites</div>
   <table id="content-control-table"></table>
   <script>
     var some_content = {{ content | safe }};
@@ -26,14 +24,17 @@
    	data:some_content, // Not sure why this doesn't work
    	layout:"fitColumns",
    	columns:[
-  	 	{title:"Title", field:"title", formatter: "html"},
-      {title:"Type", field:"type"},
-  	 	{title:"Body", field:"body", formatter: "html", maxwidth: 200},
-  	 	{title:"View", field:"view", formatter: "html"},
-  	 	{title:"Edit", field:"edit", formatter: "html"},
+  	 	{title:"Site Name", field:"site_name"},
+      {title:"Environment", field:"environment_name"},
+  	 	{title:"Site Config", field:"edit_site", formatter: "html"},
+  	 	{title:"Last Published", field:"last_published"},
+      {title:"Content Hash", field: "content_hash"},
+  	 	{title:"Index Content", field:"index_content", formatter: "html"},
+      {title:"Menu Content", field:"menu_content"},
+      {title:"Groups Content", field:"groups_content"}
    	],
    	rowClick:function(e, row){
-   		console.log("Row " + row.getData().title);
+   		console.log("Row " + row.getData().site_name);
    	},
   });
   table._setData(some_content); // This works, setting in params doesn't

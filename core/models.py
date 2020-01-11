@@ -54,7 +54,7 @@ class Node(db.Model):
     """
 
     user_id = db.Column(db.Integer, db.ForeignKey("user._id"))
-    meta = db.Column(db.UnicodeText(), index=True)
+    labels = db.Column(db.UnicodeText(), index=True)
     first_child = db.Column(db.String(200), index=True)
     layer_parents = db.Column(db.UnicodeText())
     layer_children = db.Column(db.UnicodeText())
@@ -71,7 +71,7 @@ class NodeRevision(db.Model):
 
     # content_type = db.Column(db.Integer) # After we build the type system
     user_id = db.Column(db.Integer, db.ForeignKey("user._id"))
-    meta = db.Column(db.UnicodeText(), index=True)
+    labels = db.Column(db.UnicodeText(), index=True)
     first_child = db.Column(db.String(200), index=True)
     _version = db.Column(db.Integer, primary_key=True, index=True)  # Revision override
     layer_parents = db.Column(db.UnicodeText())
@@ -176,10 +176,11 @@ class Site(db.Model):
 
     site_name = db.Column(db.String(200))
     environment_name = db.Column(db.String(200))
-    last_published = db.Column(db.db.DateTime)
+    last_published = db.Column(db.DateTime)
     local_build_dir = db.Column(db.String(200))
     static_files_dir = db.Column(db.String(200))
     hosting_type = db.Column(db.String(100))
+    content_hash = db.Column(db.String(200))
     index_content = db.Column(db.Integer)
     menu_content = db.Column(db.UnicodeText())
     groups_content = db.Column(db.UnicodeText())
@@ -191,10 +192,11 @@ class SiteRevision(db.Model):
     _version = db.Column(db.Integer, primary_key=True, index=True)  # Revision override
     site_name = db.Column(db.String(200))
     environment_name = db.Column(db.String(200))
-    last_published = db.Column(db.db.DateTime)
+    last_published = db.Column(db.DateTime)
     local_build_dir = db.Column(db.String(200))
     static_files_dir = db.Column(db.String(200))
     hosting_type = db.Column(db.String(100))
+    content_hash = db.Column(db.String(200))
     index_content = db.Column(db.Integer)
     menu_content = db.Column(db.UnicodeText())
     groups_content = db.Column(db.UnicodeText())

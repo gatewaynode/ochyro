@@ -241,3 +241,11 @@ body .ck .ck-editor__main .ck-editor__editable_inline {
   background-color: #000000;
   border-color: #1A1A1A;
 }
+
+table.site-content th{
+  background-color: #2F2F2F;
+}
+
+body table tbody td:first-child {
+	font-weight: normal;
+}

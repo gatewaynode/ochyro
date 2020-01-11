@@ -39,7 +39,7 @@
       </div>
     </div>
   </div>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.7/ace.js" type="text/javascript" charset="utf-8"></script>
+  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.7/ace.js" type="text/javascript" charset="utf-8"></script>
   <script>
       var editor_1 = ace.edit("editable_fields", {
         theme: "ace/theme/monokai",
@@ -47,12 +47,19 @@
         minLines: 5,
         maxLines: 30
       });
+      // This doesn't seem to work
+      // var editor = ace.edit("description");
+      // var textarea_1 = $('textarea[name="editable_fields"]').hide();
+      // editor_1.getSession().setValue(textarea_1.val());
+      // editor_1.getSession().on('change', function(){
+        textarea_1.val(editor_1.getSession().getValue());
+      });
       var editor_2 = ace.edit("viewable_fields", {
         theme: "ace/theme/monokai",
         mode: "ace/mode/javascript",
         minLines: 5,
         maxLines: 30
       })
-  </script>
+  </script> -->
 
 {% endblock %}

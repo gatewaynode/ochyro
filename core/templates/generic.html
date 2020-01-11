@@ -3,6 +3,7 @@
 {% block content %}
 <!-- This is temporary until I build the content type viewable fields data -->
   <div class="container generic {{ content['type'].name.replace(' ', '-').lower() }}">
+    <!-- Need to reverse this but for some reason the reversed() built in isn't found -->
     {% for key, value in content["content"].__dict__.items() %}
       {% if not key.startswith("_") %}
         <div class="label {{ key.replace('_', '-').lower() }}">

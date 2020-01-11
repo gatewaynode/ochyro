@@ -182,34 +182,41 @@ def update_object_hash_and_save(existing_content, data):
     existing_content["content"]._version = new_version_number
     existing_content["content"]._lock = ""
 
-    # Derive per field settings from content type
-    editable_fields = json.loads(existing_content["type"].editable_fields)
+    # Derive per field settings from content type unless this is a content type update
+    if existing_content["content"]._hash != existing_content["type"]._hash:
+        editable_fields = json.loads(existing_content["type"].editable_fields)
 
-    already_set_values = ["_version", "_node_id", "_lock"]
-    for key in data:
-        print(key)
-        # Security filter routines, not likely ever finalized
-        if key not in already_set_values and not key.startswith("hidden_"):
-            if editable_fields[key]["sec_filter_type"] == "REGEX":
-                # @TODO This is problematic, needs exception handling
-                regex = re.compile(editable_fields[key]["sec_filter_data"])
-                set_data = "".join(filter(regex.search, data[key]))
-            elif editable_fields[key]["sec_filter_type"] == "PLAIN_TEXT":
-                # Strip everything but alphanumerics, spaces and some simple punctuation
-                regex = re.compile("[\w\?\!\,\_\-\.\s]")
-                set_data = "".join(filter(regex.search, data[key]))
-            elif editable_fields[key]["sec_filter_type"] == "HTML_LIGHT":
-                set_data = filter_html(data[key])
-            elif editable_fields[key]["sec_filter_type"] == "HTML_EXTENDED":
-                set_data = filter_html(data[key])
-            else:  # Assume None
-                set_data = data[key]
+        already_set_values = ["_version", "_node_id", "_lock"]
+        for key in data:
+            print(key)
+            # Security filter routines, not likely ever finalized
+            if key not in already_set_values and not key.startswith("hidden_"):
+                if editable_fields[key]["sec_filter_type"] == "REGEX":
+                    # @TODO This is problematic, needs exception handling
+                    regex = re.compile(editable_fields[key]["sec_filter_data"])
+                    set_data = "".join(filter(regex.search, data[key]))
+                elif editable_fields[key]["sec_filter_type"] == "PLAIN_TEXT":
+                    # Strip everything but alphanumerics, spaces and some simple punctuation
+                    regex = re.compile("[\w\?\!\,\_\-\.\s]")
+                    set_data = "".join(filter(regex.search, data[key]))
+                else:  # Assume None
+                    set_data = data[key]
 
-            setattr(existing_content["content"], key, set_data)
+                setattr(existing_content["content"], key, set_data)
 
-    db.session.add(existing_content["content"])
-    db.session.commit()
-    db.session.refresh(existing_content["content"])
+        # @TODO Something about missing hashes here???!
+        db.session.add(existing_content["content"])
+        db.session.commit()
+        db.session.refresh(existing_content["content"])
+
+        return existing_content
+    else:
+        for key in data:
+            setattr(existing_content["content"], key, data[key])
+        # @TODO Something about missing hashes here???!
+        db.session.add(existing_content["content"])
+        db.session.commit()
+        db.session.refresh(existing_content["content"])
 
 
 def load(node_id):
@@ -419,7 +426,7 @@ def save_article(data):
 
     if data["hidden_node_id"] and data["hidden_node_version"]:  # Assume update
 
-        existing_content = load_content(load_node(data["node_id"]))
+        existing_content = load_content(load_node(data["hidden_node_id"]))
         # @TODO Check hashes here just cause we can
         # @TODO Check locks here, if locked restore form and return user
 
@@ -475,45 +482,10 @@ def save_article(data):
 def save_site(data):
     """Create or update an site content type"""
 
-    # !! REFACTOR
     content_type = content_type_check_and_load("Site Content Type")
 
     if data["hidden_node_id"] and data["hidden_node_version"]:  # Assume update
-        # #!!! <- start load and revise
-        # existing_content = load(data["node_id"])
-        # # @TODO Check hashes here just cause we can
-        # # @TODO Check locks here, if locked restore form and return user
-        #
-        # content_revision = save_revision(existing_content["content"], SiteRevision)
-        # #!!! -> end load and revise
         existing_content = load_and_revise(data["hidden_node_id"], SiteRevision)
-
-        # new_version_number = existing_content["content"]._version + 1
-        # #!!! turn this into a setattr loop
-        # existing_content["content"]._version = new_version_number
-        # existing_content["content"]._node_id = existing_content["node"]._id
-        # existing_content["content"]._lock = ""
-        # existing_content["content"].site_name = clean_html(data["site_name"])
-        # existing_content["content"].local_build_dir = clean_html(
-        #     data["local_build_dir"]
-        # )
-        # existing_content["content"].static_files_dir = clean_html(
-        #     data["static_files_dir"]
-        # )
-        # existing_content["content"].index_content = data["index_content"]
-        # existing_content["content"].hosting_type = data["hosting_type"]
-        # #!!! <- begin hash and save
-        # existing_content["content"]._hash = _hash_table(
-        #     existing_content["content"]
-        # )  # Hash after updating object values
-        # existing_content["content"]._hash_chain = _hash_table(
-        #     existing_content["content"], chain=True
-        # )
-        # db.session.add(existing_content["content"])
-        # db.session.commit()
-        # db.session.refresh(existing_content["content"])
-        # #!!! -> end hash and save
-
         update_object_hash_and_save(existing_content, data)
 
         return existing_content
@@ -526,10 +498,13 @@ def save_site(data):
             _node_id=node._id,
             _lock="",
             site_name=data["site_name"],
+            environment_name=data["environment_name"],
             local_build_dir=data["local_build_dir"],
             static_files_dir=data["static_files_dir"],
-            index_content=data["index_content"],
             hosting_type=data["hosting_type"],
+            index_content=data["index_content"],
+            menu_content=data["menu_content"],
+            groups_content=data["groups_content"],
         )
         # First save get's our article ID to include in the hash
         #!!! <- being first save
@@ -547,3 +522,26 @@ def save_site(data):
         content_obj = _associate_node(node, site, content_type)
 
         return content_obj
+
+
+def save_content_type(data):
+    """Update an content type (save currently disabled)"""
+
+    content_type = "Content Type Content Type"  # Special exception
+
+    if data["hidden_node_id"] and data["hidden_node_version"]:  # Assume update
+        existing_content = load_and_revise(data["hidden_node_id"], ContentTypeRevision)
+
+        update_object_hash_and_save(existing_content, data)
+
+        return existing_content
+
+    else:  # Assume new site
+        # @TODO get to this later
+        return False
+
+
+def build_static_site(data):
+    """Build a static site based on the site content type content"""
+    pprint(data)
+    return "Site build received"

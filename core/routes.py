@@ -13,6 +13,7 @@ from core.forms import (
     EditUserForm,
     EditArticleForm,
     EditSiteForm,
+    SiteDeploymentControlForm,
 )
 from core.controllers import (
     normalize_form_input,
@@ -22,6 +23,7 @@ from core.controllers import (
     load_node,
     load_content,
     load,
+    build_static_site,
 )
 
 import core.views as views
@@ -100,7 +102,7 @@ def edit_user(node=None):
     if form.validate_on_submit():
         save_user(normalize_form_input(form))
         flash("User saved.")
-        return redirect(url_for("index"))
+        return redirect(url_for("content_control"))
     # elif request.method == "GET":
     #     form.username.data = current_user.username
     if node:
@@ -131,7 +133,7 @@ def edit_article(node=None):
     if form.validate_on_submit():
         save_article(normalize_form_input(form))
         flash("Article saved.")
-        return redirect(url_for("index"))
+        return redirect(url_for("content_control"))
     if node:  # Edit an existing article
         content = load_content(load_node(node))
         # @TODO check locks here
@@ -159,11 +161,14 @@ def view_article(node):
 def edit_site(node=None):
     form = EditSiteForm()
     index_choices = views.view_all_articles_as_node_options()
+    publishing_options = views.view_all_sites_as_node_options()
     form.index_content.choices = index_choices
+    form.last_site.choices = publishing_options
+    form.next_site.choices = publishing_options
     if form.validate_on_submit():
         save_site(normalize_form_input(form))
         flash("Site saved.")
-        return redirect(url_for("index"))
+        return redirect(url_for("site_control"))
     if node:
         content = load(node)
         return render_template(
@@ -175,12 +180,15 @@ def edit_site(node=None):
         )
 
 
-@app.route("/view/site/<node>")
+@app.route("/view/site/<node>", methods=["GET", "POST"])
 @login_required
 def view_site(node):
-    """View a site using a generic view and template"""
+    """View a site using a generic view and template, POST for site actions"""
     content = views.view_node(node)
-    return render_template("generic.html", content=content)
+    form = SiteDeploymentControlForm()
+    if form.validate_on_submit:
+        flash(build_static_site(normalize_form_input(form)))
+    return render_template("view_site_and_build.html", content=content, form=form)
 
 
 @app.route("/edit/content-type/", methods=["GET", "POST"])
@@ -191,7 +199,7 @@ def edit_content_type(node=None):
     if form.validate_on_submit():
         save_content_type(normalize_form_input(form))
         flash("Content Type Saved")
-        return redirector(url_for("index"))
+        return redirector(url_for("content_control"))
     if node:
         content = load(node)
         return render_template(
@@ -239,6 +247,8 @@ def content_control():
 @login_required
 def site_control():
     """Primary site creation and distribution mechanism"""
+    content = views.view_site_control()
+    return render_template("site-control.html", content=content)
 
 
 @app.route("/debug", methods=["GET"])

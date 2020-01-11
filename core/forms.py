@@ -128,6 +128,22 @@ class EditSiteForm(FlaskForm):
             Length(min=1, max=200, message="200 character max"),
         ],
     )
+    environment_name = StringField(
+        "Environment Name",
+        description="A given environment for a given site (i.e. DEV, STAGE, PROD, FOO)",
+        validators=[
+            DataRequired(),
+            Length(min=1, max=200, message="200 character max"),
+        ],
+    )
+    last_site = SelectField(
+        "Last Site",
+        description="The previous site in the publishing workflow",
+        coerce=int,
+    )
+    next_site = SelectField(
+        "Next Site", description="The next site in the publishing workflow", coerce=int,
+    )
     local_build_dir = StringField(
         "Local Build Directory",
         description="The full local path to artifacts in",
@@ -158,8 +174,12 @@ class EditSiteForm(FlaskForm):
         coerce=int,
         validators=[DataRequired()],
     )
-    menu_content = TextAreaField()
-    groups_content = TextAreaField()
+    menu_content = TextAreaField(
+        "Content Menus", description="Menu trees to include in site."
+    )
+    groups_content = TextAreaField(
+        "Content Groups", description="Content groups to include in the site."
+    )
     hidden_node_id = HiddenField()
     hidden_node_version = HiddenField()
     hidden_node_hash = HiddenField()
@@ -205,3 +225,31 @@ class EditContentTypeForm(FlaskForm):
     hidden_content_hash = HiddenField()
     hidden_content_type = HiddenField()
     submit = SubmitField("Save")
+
+
+class SiteBuildControlForm(FlaskForm):
+    site_source = IntegerField(
+        "Site Build ID",
+        description="The site/environment to deploy from.",
+        validators=[DataRequired()],
+    )
+    site_target = IntegerField(
+        "Site Build Type",
+        description="The site/environment to deploy to.",
+        validators=[DataRequired()],
+    )
+    submit = SubmitField("Deploy")
+
+
+class SiteDeploymentControlForm(FlaskForm):
+    site_source = IntegerField(
+        "Source Site",
+        description="The site/environment to deploy from.",
+        validators=[DataRequired()],
+    )
+    site_target = IntegerField(
+        "Site Target",
+        description="The site/environment to deploy to.",
+        validators=[DataRequired()],
+    )
+    submit = SubmitField("Deploy")

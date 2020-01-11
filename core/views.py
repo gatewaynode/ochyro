@@ -71,12 +71,15 @@ def view_site_control():
     for site in sites:
         preload_index_content = load(site["content"].index_content)
         # HTML Spaghetti, my favorite
-        index_content_link = f"<a href=\"{preload_index_content['type'].view_url}/preload_index_content['node']._id\">view</a> <a href=\"{preload_index_content['type'].edit_url}/preload_index_content['node']._id\">edit</a>"
+        edit_site_link = f"<a href=\"{site['type'].view_url}/{site['node']._id}\">view</a> | <a href=\"{site['type'].edit_url}/{site['node']._id}\">edit</a>"
+        index_content_link = f"<a href=\"{preload_index_content['type'].view_url}/{preload_index_content['node']._id}\">view</a> | <a href=\"{preload_index_content['type'].edit_url}/{preload_index_content['node']._id}\">edit</a>"
         table_content.append(
             {
                 "site_name": site["content"].site_name,
-                "edit_site": f"<a href=\"{site['type'].edit_url}/{site['node']._id}\">edit</a>",
-                "last_published": site["content"].last_published,
+                "environment_name": site["content"].environment_name,
+                "edit_site": edit_site_link,
+                "last_published": str(site["content"].last_published),
+                "content_hash": site["content"].content_hash,
                 "index_content": index_content_link,
                 "menu_content": site["content"].menu_content,
                 "groups_content": site["content"].groups_content,
@@ -106,7 +109,23 @@ def view_all_articles_as_node_options():
     """Dynamically load articles as options for a form"""
     raw_options = Article.query.all()
     index_content_options = []
+    if raw_options:
+        for option in raw_options:
+            index_content_options.append((option._node_id, option.title))
+    else:
+        index_content_options.append((0, "None"))
+    return index_content_options
+
+
+def view_all_sites_as_node_options():
+    """Dynamically load articles as options for a form"""
+    raw_options = Site.query.all()
+    index_content_options = []
+    index_content_options.append((0, "Origin"))
     for option in raw_options:
-        index_content_options.append((option._node_id, option.title))
+        index_content_options.append(
+            (option._node_id, f"{option.site_name}: {option.environment_name}")
+        )
+    index_content_options.append((999999, "Terminus"))
 
     return index_content_options

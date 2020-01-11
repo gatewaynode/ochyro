@@ -9,7 +9,7 @@ import traceback
 
 @task
 def virtualenv():
-    run("virtualenv --prompt ')> Ochyro <( ' env --python python3.7")
+    run("virtualenv --prompt ')> Ochyro <( ' env --python python3.8")
     run("env/bin/pip install -r requirements.txt")
     print("\nVirtualENV Setup Complete.  Now run: source env/bin/activate\n")
 

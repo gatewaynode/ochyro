@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div class="container">
+    <div class="site-content-type node-id-{{ content['node']._id }}">
+      <div class="field site-name ">
+        {{ content["content"].site_name }}
+      </div>
+      <div class="field environment-name">
+        {{ content["content"].environment_name }}
+      </div>
+      <div class="field last-published">
+        {{ content["content"].last_published }}
+      </div>
+      <div class="field local-build-dir">
+        {{ content["content"].local_build_dir}}
+      </div>
+      <div class="field static-files-dir">
+        {{ content["content"].static_files_dir}}
+      </div>
+      <div class="field hosting-type">
+        {{ content["content"].hosting_type}}
+      </div>
+      <div class="field content-hash">
+        {{ content["content"].content_hash}}
+      </div>
+      <div class="field index-content">
+        {{ content["content"].index_content}}
+      </div>
+      <div class="field menu-content">
+        {{ content["content"].menu_content}}
+      </div>
+      <div class="field groups-content">
+        {{ content["content"].groups_content}}
+      </div>
+    </div>
+  </div>
+{% endblock %}

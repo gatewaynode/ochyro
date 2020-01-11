@@ -69,7 +69,7 @@ content_types = [
             {
                 "username": {"sec_filter_type": "REGEX", "sec_filter_data": "^\w+$"},
                 "email": {
-                    "sec_filter_type": "REGEX",
+                    "sec_filter_type": "NONE",
                     "sec_filter_data": "[^\w.@\+\-\.]",
                 },
                 "password_hash": {"sec_filter_type": "NONE", "sec_filter_data": ""},
@@ -89,25 +89,25 @@ content_types = [
                 "email": {
                     "viewable": True,
                     "label": True,
-                    "data_format": "EMAIL",  # PLAIN_TEXT, EMAIL, FILENAME, HTML
+                    "data_format": "NONE",  # PLAIN_TEXT, EMAIL, FILENAME, HTML
                     "roles": "PUBLIC",  # PUBLIC, SELF or a specific role string
                 },
                 "password_hash": {
                     "viewable": True,
                     "label": True,
-                    "data_format": "PLAIN_TEXT",  # PLAIN_TEXT, EMAIL, FILENAME, HTML
+                    "data_format": "NONE",  # PLAIN_TEXT, EMAIL, FILENAME, HTML
                     "roles": "PUBLIC",  # PUBLIC, SELF or a specific role string
                 },
                 "last_login": {
                     "viewable": True,
                     "label": True,
-                    "data_format": "PLAIN_TEXT",  # PLAIN_TEXT, EMAIL, FILENAME, HTML
+                    "data_format": "NONE",  # PLAIN_TEXT, EMAIL, FILENAME, HTML
                     "roles": "PUBLIC",  # PUBLIC, SELF or a specific role string
                 },
                 "roles": {
                     "viewable": True,
                     "label": True,
-                    "data_format": "PLAIN_TEXT",  # PLAIN_TEXT, EMAIL, FILENAME, HTML
+                    "data_format": "NONE",  # PLAIN_TEXT, EMAIL, FILENAME, HTML
                     "roles": "PUBLIC",  # PUBLIC, SELF or a specific role string
                 },
             },
@@ -157,17 +157,21 @@ content_types = [
                     "sec_filter_type": "PLAIN_TEXT",
                     "sec_filter_data": "",
                 },
+                "last_published": {"sec_filter_type": "NONE", "sec_filter_data": "",},
                 "local_build_dir": {
-                    "sec_filter_type": "REGEX",
+                    "sec_filter_type": "NONE",
                     "sec_filter_data": "[\w.\/\_\-\.\\]",
                 },
                 "static_files_dir": {
-                    "sec_filter_type": "REGEX",
+                    "sec_filter_type": "NONE",
                     "sec_filter_data": "[\w.\/_\-\.\\]",
                 },
-                "index_content": {"sec_filter_type": "NONE", "sec_filter_data": "",},
                 "hosting_type": {"sec_filter_type": "NONE", "sec_filter_data": "",},
-                "last_published": {"sec_filter_type": "NONE", "sec_filter_data": "",},
+                "index_content": {"sec_filter_type": "NONE", "sec_filter_data": "",},
+                "menu_content": {"sec_filter_type": "NONE", "sec_filter_data": "",},
+                "groups_content": {"sec_filter_type": "NONE", "sec_filter_data": "",},
+                "last_site": {"sec_filter_type": "NONE", "sec_filter_data": "",},
+                "next_site": {"sec_filter_type": "NONE", "sec_filter_data": "",},
             },
             indent=4,
         ),
@@ -199,12 +203,6 @@ content_types = [
                     "data_format": "HTML",  # PLAIN_TEXT, EMAIL, FILENAME, HTML
                     "roles": "PUBLIC",  # PUBLIC, SELF or a specific role string
                 },
-                "index_content": {
-                    "viewable": True,
-                    "label": True,
-                    "data_format": "HTML",  # PLAIN_TEXT, EMAIL, FILENAME, HTML
-                    "roles": "PUBLIC",  # PUBLIC, SELF or a specific role string
-                },
                 "hosting_type": {
                     "viewable": True,
                     "label": True,
@@ -216,6 +214,24 @@ content_types = [
                     "label": True,
                     "data_format": "HTML",  # PLAIN_TEXT, EMAIL, FILENAME, HTML
                     "roles": ["PUBLIC"],  # PUBLIC, SELF or a specific role string
+                },
+                "index_content": {
+                    "viewable": True,
+                    "label": True,
+                    "data_format": "HTML",  # PLAIN_TEXT, EMAIL, FILENAME, HTML
+                    "roles": "PUBLIC",  # PUBLIC, SELF or a specific role string
+                },
+                "menu_content": {
+                    "viewable": True,
+                    "label": True,
+                    "data_format": "HTML",  # PLAIN_TEXT, EMAIL, FILENAME, HTML
+                    "roles": "PUBLIC",  # PUBLIC, SELF or a specific role string
+                },
+                "groups_content": {
+                    "viewable": True,
+                    "label": True,
+                    "data_format": "HTML",  # PLAIN_TEXT, EMAIL, FILENAME, HTML
+                    "roles": "PUBLIC",  # PUBLIC, SELF or a specific role string
                 },
             },
             indent=4,

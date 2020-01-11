@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block content %}
+<!-- This is temporary until I build the content type viewable fields data -->
+{% set _ = form.site_source.process_data(content["node"]._id) %}
+{% set _ = form.site_target.process_data(content["node"].layer_next_node) %}
+  <div class="container generic {{ content['type'].name.replace(' ', '-').lower() }}">
+    <div class="create-content-options">
+      <a href="#" onclick=document.getElementById("site-build-form").submit();><button>Build Site</button></a>
+      <a href={{ url_for("edit_site") }}{{ content["node"]._id }}><button>Edit Site</button></a>
+    </div>
+    <table class="site-content" style="width: 100%;">
+      <tr class="identifiers">
+        <th class=" ">
+          Site Name
+        </th>
+        <th class=" ">
+          Environment
+        </th>
+        <th class=" ">
+          Last Published
+        </th>
+      </tr>
+      <tr class="data">
+        <td class="content ">
+          {{ content["content"].site_name }}
+        </td>
+        <td class="content ">
+          {{ content["content"].environment_name }}
+        </td>
+        <td class="content ">
+          {{ content["content"].last_published }}
+        </td>
+      </tr>
+      <tr class="identifiers">
+        <th class=" ">
+          Local Build Directory
+        </th>
+        <th class=" ">
+          Static Files Directory
+        </th>
+        <th class=" ">
+          Hosting Type
+        </th>
+      </tr>
+      <tr class="data">
+        <td class="content ">
+          {{ content["content"].local_build_dir }}
+        </td>
+        <td class="content ">
+          {{ content["content"].static_files_dir }}
+        </td>
+        <td class="content ">
+          {{ content["content"].hosting_type }}
+        </td>
+      </tr>
+      <tr class="identifiers">
+        <th class=" ">
+          Content Hash
+        </th>
+        <th class=" ">
+          Index Content
+        </th>
+        <th class=" ">
+          Menu Content
+        </th>
+      </tr>
+      <tr class="data">
+        <td class="content">
+          {{ content["content"].content_hash }}
+        </td>
+        <td class="content">
+          {{ content["content"].index_content }}
+        </td>
+        <td class="content">
+          {{ content["content"].menu_content }}
+        </td>
+      </tr>
+      <tr class="identifiers">
+        <th class=" ">
+          Groups Content
+        </th>
+        <th class=" ">
+          Last Workflow Stage
+        </th>
+        <th class=" ">
+          Next workflow Stage
+        </th>
+      </tr>
+      <tr class="data">
+        <td class="content">
+          {{ content["content"].groups_content }}
+        </td>
+        <td class="content">
+          {{ content["node"].layer_previous_node }}
+        </td>
+        <td class="content">
+          {{ content["node"].layer_next_node }}
+        </td>
+      </tr>
+    </div>
+  <div class="button-form" style="visibility: hidden; display: none;">
+    {{ wtf.quick_form(form, id="site-build-form") }}
+  </div>
+{% endblock %}

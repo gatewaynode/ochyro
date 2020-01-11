@@ -10,6 +10,7 @@
     {% set _ = form.hidden_content_hash.process_data(content["content"]._hash) %}
     {% set _ = form.hidden_content_type.process_data(content["type"].content_class) %}
     {% set _ = form.site_name.process_data(content["content"].site_name) %}
+    {% set _ = form.environment_name.process_data(content["content"].environment_name) %}
     {% set _ = form.local_build_dir.process_data(content["content"].local_build_dir) %}
     {% set _ = form.static_files_dir.process_data(content["content"].static_files_dir) %}
     {% set _ = form.index_content.process_data(content["content"].index_content) %}
