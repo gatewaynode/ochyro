@@ -13,7 +13,7 @@ from core.forms import (
     EditUserForm,
     EditArticleForm,
     EditSiteForm,
-    SiteDeploymentControlForm,
+    BuildSiteForm,
 )
 from core.controllers import (
     normalize_form_input,
@@ -185,10 +185,12 @@ def edit_site(node=None):
 def view_site(node):
     """View a site using a generic view and template, POST for site actions"""
     content = views.view_node(node)
-    form = SiteDeploymentControlForm()
-    if form.validate_on_submit:
-        flash(build_static_site(normalize_form_input(form)))
-    return render_template("view_site_and_build.html", content=content, form=form)
+    build_form = BuildSiteForm()
+    if build_form.validate_on_submit:
+        flash(build_static_site(normalize_form_input(build_form)))
+    return render_template(
+        "view_site_and_build.html", content=content, build_form=build_form
+    )
 
 
 @app.route("/edit/content-type/", methods=["GET", "POST"])

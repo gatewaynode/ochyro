@@ -188,6 +188,30 @@ class EditSiteForm(FlaskForm):
     submit = SubmitField("Save")
 
 
+class BuildSiteForm(FlaskForm):
+    """Create or edit site publishing endpoints"""
+
+    site_name = StringField(
+        "Site Name", validators=[DataRequired(), Length(min=1, max=200),],
+    )
+    environment_name = StringField(
+        "Environment Name", validators=[DataRequired(), Length(min=1, max=200),],
+    )
+    last_site = IntegerField("Last Site", validators=[DataRequired()])
+    next_site = IntegerField("Next Site", validators=[DataRequired()])
+    local_build_dir = StringField(
+        "Local Build Directory", validators=[DataRequired(), Length(min=1, max=200),],
+    )
+    static_files_dir = StringField(
+        "Static Files Directory", validators=[DataRequired(), Length(min=1, max=200),],
+    )
+    hosting_type = IntegerField("Hosting Type", validators=[DataRequired()],)
+    index_content = IntegerField("Content Index", validators=[DataRequired()],)
+    menu_content = TextAreaField("Content Menus")
+    groups_content = TextAreaField("Content Groups")
+    button_send = SubmitField("Save")
+
+
 class EditContentTypeForm(FlaskForm):
     name = StringField(
         "Content Type Name",
@@ -227,18 +251,52 @@ class EditContentTypeForm(FlaskForm):
     submit = SubmitField("Save")
 
 
-class SiteBuildControlForm(FlaskForm):
-    site_source = IntegerField(
-        "Site Build ID",
-        description="The site/environment to deploy from.",
-        validators=[DataRequired()],
-    )
-    site_target = IntegerField(
-        "Site Build Type",
-        description="The site/environment to deploy to.",
-        validators=[DataRequired()],
-    )
-    submit = SubmitField("Deploy")
+# class SiteBuildControlForm(FlaskForm):
+#     last_site = SelectField(
+#         "Last Site",
+#         description="The previous site in the publishing workflow",
+#         coerce=int,
+#     )
+#     next_site = SelectField(
+#         "Next Site", description="The next site in the publishing workflow", coerce=int,
+#     )
+#     local_build_dir = StringField(
+#         "Local Build Directory",
+#         description="The full local path to artifacts in",
+#         validators=[
+#             DataRequired(),
+#             Length(min=1, max=200, message="200 character max."),
+#         ],
+#     )
+#     static_files_dir = StringField(
+#         "Static Files Directory",
+#         description="The full local path to the static files directory for this site",
+#         validators=[
+#             DataRequired(),
+#             Length(min=1, max=200, message="200 character max"),
+#         ],
+#     )
+#     hosting_type_options = [(1, "Github Pages")]
+#     hosting_type = SelectField(
+#         "Hosting Type",
+#         description="The hosting type of the endpoint (only Github Pages currently supported)",
+#         coerce=int,
+#         choices=hosting_type_options,
+#         validators=[DataRequired()],
+#     )
+#     index_content = SelectField(
+#         "Content Index",
+#         description="The node ID for the front page index for the site",
+#         coerce=int,
+#         validators=[DataRequired()],
+#     )
+#     menu_content = TextAreaField(
+#         "Content Menus", description="Menu trees to include in site."
+#     )
+#     groups_content = TextAreaField(
+#         "Content Groups", description="Content groups to include in the site."
+#     )
+#     submit = SubmitField("Deploy")
 
 
 class SiteDeploymentControlForm(FlaskForm):

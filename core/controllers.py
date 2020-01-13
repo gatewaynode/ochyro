@@ -23,6 +23,9 @@ import html
 import copy
 from lxml.html.clean import clean_html
 import re
+import os
+import requests
+import shutil
 from pprint import pprint
 
 
@@ -543,5 +546,50 @@ def save_content_type(data):
 
 def build_static_site(data):
     """Build a static site based on the site content type content"""
+    # Debugging
+    print('Build Static Site Function, "Data Received":')
     pprint(data)
+    # Debugging
+
+    index_page = ""
+    if data["local_build_dir"] and os.path.isdir(
+        data["local_build_dir"]
+    ):  # validate the build dir exists
+        # wipe it and rebuild at this endpoint
+
+        try:
+            shutil.rmtree(data["local_build_dir"])
+        except Exception as e:
+            logging.error("There has been a problem removing the old site build.")
+            logging.error(traceback.format_exc())
+            return "Build Failed"
+
+    try:
+        os.makedirs(data["local_build_dir"])
+    except Exception as e:
+        logging.error(traceback.format_exc())
+        return "Build Failed"
+
+    try:
+        r = requests.get(
+            "http://localhost:5000"
+        )  # Cheating here, seems the index field needs to be more requests centric
+        index_page = r.text
+    except Exception as e:
+        logging.error(traceback.format_exc())
+        return "Build Failed"
+
+    try:
+        shutil.copytree(data["static_files_dir"], f"{data['local_build_dir']}/static")
+    except Exception as e:
+        logging.error(traceback.format_exc())
+        return "Build Failed"
+
+    try:
+        with open(f"{data['local_build_dir']}/index.html", "w") as file:
+            file.write(index_page)
+    except Exception as e:
+        logging.error(traceback.format_exc())
+        return "Build Failed"
+
     return "Site build received"
