@@ -23,7 +23,6 @@ from core.controllers import (
     load_node,
     load_content,
     load,
-    build_static_site,
 )
 
 import core.views as views
@@ -187,7 +186,11 @@ def view_site(node):
     content = views.view_node(node)
     build_form = BuildSiteForm()
     if build_form.validate_on_submit:
-        flash(build_static_site(normalize_form_input(build_form)))
+        from core.builders import build_static_site
+
+        site_input = normalize_form_input(build_form)
+        build_output = build_static_site(site_input)
+        flash(build_output)
     return render_template(
         "view_site_and_build.html", content=content, build_form=build_form
     )
