@@ -97,7 +97,7 @@ def view_all_articles():
     for content in contents:
         table_content.append(
             {
-                "title": f"<a href=\"{content['type'].view_url}/{content['node']._id}\">{content['content'].title}</a>",
+                "title": f"<a href=\"{content['type'].view_url}/{content['node']._id}.html\">{content['content'].title}</a>",
                 "date": str(content["content"]._timestamp),
             }
         )

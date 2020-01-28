@@ -148,7 +148,11 @@ def edit_article(node=None):
 @app.route("/view/article/<node>")
 def view_article(node):
     """View a article using generic view"""
-    content = views.view_node(node)
+    # Probably need to make the HTML extension handler generic for all routes
+    if node.endswith(".html"):
+        content = views.view_node(node.rstrip(".html"))
+    else:
+        content = views.view_node(node)
     return render_template(
         "article.html", title=content["content"].title, content=content
     )
