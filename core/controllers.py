@@ -208,8 +208,13 @@ def update_object_hash_and_save(existing_content, data):
 
                 setattr(existing_content["content"], key, set_data)
 
-        # @TODO Something about missing hashes here???!
         db.session.add(existing_content["content"])
+        db.session.commit()
+        db.session.refresh(existing_content["content"])
+        existing_content["content"]._hash = _hash_table(existing_content["content"])
+        existing_content["content"]._hash_chain = _hash_table(
+            existing_content["content"], chain=True
+        )
         db.session.commit()
         db.session.refresh(existing_content["content"])
 
@@ -217,8 +222,13 @@ def update_object_hash_and_save(existing_content, data):
     else:
         for key in data:
             setattr(existing_content["content"], key, data[key])
-        # @TODO Something about missing hashes here???!
         db.session.add(existing_content["content"])
+        db.session.commit()
+        db.session.refresh(existing_content["content"])
+        existing_content["content"]._hash = _hash_table(existing_content["content"])
+        existing_content["content"]._hash_chain = _hash_table(
+            existing_content["content"], chain=True
+        )
         db.session.commit()
         db.session.refresh(existing_content["content"])
 
