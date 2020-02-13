@@ -181,7 +181,7 @@ class Site(db.Model):
     static_files_dir = db.Column(db.String(200))
     hosting_type = db.Column(db.String(100))
     content_hash = db.Column(db.String(200))
-    index_content = db.Column(db.Integer)
+    index_content = db.Column(db.String(200))
     menu_content = db.Column(db.UnicodeText())
     groups_content = db.Column(db.UnicodeText())
 
@@ -197,6 +197,6 @@ class SiteRevision(db.Model):
     static_files_dir = db.Column(db.String(200))
     hosting_type = db.Column(db.String(100))
     content_hash = db.Column(db.String(200))
-    index_content = db.Column(db.Integer)
+    index_content = db.Column(db.String(200))
     menu_content = db.Column(db.UnicodeText())
     groups_content = db.Column(db.UnicodeText())

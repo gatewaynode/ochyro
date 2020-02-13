@@ -69,10 +69,10 @@ def view_site_control():
 
     table_content = []
     for site in sites:
-        preload_index_content = load(site["content"].index_content)
+        # preload_index_content = load(site["content"].index_content)
         # HTML Spaghetti, my favorite
         edit_site_link = f"<a href=\"{site['type'].view_url}/{site['node']._id}\">view</a> | <a href=\"{site['type'].edit_url}/{site['node']._id}\">edit</a>"
-        index_content_link = f"<a href=\"{preload_index_content['type'].view_url}/{preload_index_content['node']._id}\">view</a> | <a href=\"{preload_index_content['type'].edit_url}/{preload_index_content['node']._id}\">edit</a>"
+        # index_content_link = f"<a href=\"{preload_index_content['type'].view_url}/{preload_index_content['node']._id}\">view</a> | <a href=\"{preload_index_content['type'].edit_url}/{preload_index_content['node']._id}\">edit</a>"
         table_content.append(
             {
                 "site_name": site["content"].site_name,
@@ -80,7 +80,7 @@ def view_site_control():
                 "edit_site": edit_site_link,
                 "last_published": str(site["content"].last_published),
                 "content_hash": site["content"].content_hash,
-                "index_content": index_content_link,
+                # "index_content": index_content_link,
                 "menu_content": site["content"].menu_content,
                 "groups_content": site["content"].groups_content,
             }

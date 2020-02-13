@@ -41,6 +41,24 @@ def setup_cms():
         import core.init_cms
 
 
+@app.before_request
+def handle_dot_html_requests():
+    # pprint(vars(request))
+    # 'environ': {
+    # 'PATH_INFO': '/index',
+    # 'QUERY_STRING': '??',
+    # 'RAW_URI': '/index???',
+    # 'REMOTE_ADDR': '127.0.0.1',
+    # 'REQUEST_METHOD': 'GET',
+    # 'REQUEST_URI': '/index???',
+    # 'SERVER_NAME': '127.0.0.1',
+    # 'SERVER_PORT': '5000',
+    # 'SERVER_PROTOCOL': 'HTTP/1.1',
+    print(
+        f"{request.environ['SERVER_NAME']} -- {request.environ['SERVER_PORT']} -- {request.environ['PATH_INFO']}"
+    )
+
+
 @login.user_loader
 def load_user(id):
     """Directly accesses the user table. WARNING: To be deprecated"""
@@ -165,7 +183,7 @@ def edit_site(node=None):
     form = EditSiteForm()
     index_choices = views.view_all_articles_as_node_options()
     publishing_options = views.view_all_sites_as_node_options()
-    form.index_content.choices = index_choices
+    # form.index_content.choices = index_choices
     form.last_site.choices = publishing_options
     form.next_site.choices = publishing_options
     if form.validate_on_submit():

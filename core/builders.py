@@ -160,7 +160,7 @@ def build_static_site(data):
 
         # Loop through the pages dict and create each page in the correct build dir
         for key, page in pages_to_build.items():
-            print(f"{data['local_build_dir']}{page['page_file_name']}")
+            # print(f"{data['local_build_dir']}{page['page_file_name']}")
             with safe_open_w(
                 f"{data['local_build_dir']}{page['page_file_name']}"
             ) as file:

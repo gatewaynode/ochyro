@@ -1,8 +1,8 @@
-"""Working through site requirements
+"""Maybe finally ready again?
 
-Revision ID: a82c96ee9fa7
+Revision ID: 035599489d45
 Revises: 
-Create Date: 2020-01-11 08:06:53.910701
+Create Date: 2020-02-12 15:31:17.987766
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'a82c96ee9fa7'
+revision = '035599489d45'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -117,7 +117,7 @@ def upgrade():
     sa.Column('static_files_dir', sa.String(length=200), nullable=True),
     sa.Column('hosting_type', sa.String(length=100), nullable=True),
     sa.Column('content_hash', sa.String(length=200), nullable=True),
-    sa.Column('index_content', sa.Integer(), nullable=True),
+    sa.Column('index_content', sa.String(length=200), nullable=True),
     sa.Column('menu_content', sa.UnicodeText(), nullable=True),
     sa.Column('groups_content', sa.UnicodeText(), nullable=True),
     sa.PrimaryKeyConstraint('_id')
@@ -143,7 +143,7 @@ def upgrade():
     sa.Column('static_files_dir', sa.String(length=200), nullable=True),
     sa.Column('hosting_type', sa.String(length=100), nullable=True),
     sa.Column('content_hash', sa.String(length=200), nullable=True),
-    sa.Column('index_content', sa.Integer(), nullable=True),
+    sa.Column('index_content', sa.String(length=200), nullable=True),
     sa.Column('menu_content', sa.UnicodeText(), nullable=True),
     sa.Column('groups_content', sa.UnicodeText(), nullable=True),
     sa.PrimaryKeyConstraint('_id', '_version')

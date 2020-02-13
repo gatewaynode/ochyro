@@ -168,10 +168,9 @@ class EditSiteForm(FlaskForm):
         choices=hosting_type_options,
         validators=[DataRequired()],
     )
-    index_content = SelectField(
+    index_content = StringField(
         "Content Index",
-        description="The node ID for the front page index for the site",
-        coerce=int,
+        description="The URI for the front page index for the site",
         validators=[DataRequired()],
     )
     menu_content = TextAreaField(
@@ -206,7 +205,7 @@ class BuildSiteForm(FlaskForm):
         "Static Files Directory", validators=[DataRequired(), Length(min=1, max=200),],
     )
     hosting_type = IntegerField("Hosting Type", validators=[DataRequired()],)
-    index_content = IntegerField("Content Index", validators=[DataRequired()],)
+    index_content = StringField("Content Index", validators=[DataRequired()],)
     menu_content = TextAreaField("Content Menus")
     groups_content = TextAreaField("Content Groups")
     button_send = SubmitField("Save")
