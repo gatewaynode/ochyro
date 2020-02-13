@@ -10,8 +10,9 @@ from pprint import pprint
 # This is probably the wrong way to do it, should stay in the content API
 def view_front_page():
     raw_content = Article.query.all()
+    pprint(raw_content)
     articles = []
-    for content in raw_content:
+    for content in raw_content[::-1]:
         articles.append(load(content._node_id))
     return articles
 

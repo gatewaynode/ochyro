@@ -55,9 +55,26 @@ body .navbar-default .navbar-toggle .icon-bar{
   background-color: rgba(0, 0, 0, 0.7);
 }
 
+/* Transparent shading for text over background images */
 .article-body{
   color: #12b912;
   background-color: rgba(0, 0, 0, 0.7);
+}
+
+.article-body p{
+  background-color: rgba(0, 0, 0, 0.65);
+}
+
+.article-title p{
+  padding-top: 5px;
+  padding-bottom: 5px;
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
+.article-created-date{
+  padding-top: 2px;
+  padding-bottom: 2px;
+  background-color: rgba(0, 0, 0, 0.75);
 }
 
 .content-body{
